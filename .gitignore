@@ -1,0 +1,48 @@
+# Rust
+/target
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local development
+.env
+.env.local
+
+# Models and data
+/models
+*.gguf
+*.safetensors
+*.bin
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+*.log
+
+# Benchmarks
+/benches/results
+
+# Python (if using MAX Engine via Python)
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+venv/
+.venv/
+
+# MAX/Modular
+.modular/
