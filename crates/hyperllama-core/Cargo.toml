@@ -1,0 +1,21 @@
+[package]
+name = "hyperllama-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+futures = { workspace = true }
+async-stream = { workspace = true }
+dashmap = { workspace = true }
+parking_lot = { workspace = true }
+sysinfo = { workspace = true }
