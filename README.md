@@ -1,20 +1,20 @@
 # HyperLlama
 
-> High-performance local LLM inference server - Ollama's simplicity, vLLM's speed
+> High-performance local LLM inference server with exceptional developer experience
 
 **Status**: 🚧 Phase 0 (Week 1) - Technology Validation
 
 ## What is HyperLlama?
 
-HyperLlama is a next-generation local LLM inference server that combines:
-- **Ollama's exceptional developer experience** (simple CLI, auto-downloads, one command setup)
-- **State-of-the-art performance optimizations** (continuous batching, FlashAttention, speculative decoding)
-- **Universal hardware support** (NVIDIA, AMD, Apple Silicon, Intel, CPU)
+HyperLlama is a local LLM inference server that delivers:
+- **Simple developer experience**: One-command installation, auto-downloads, intuitive CLI
+- **State-of-the-art performance**: Continuous batching, FlashAttention, speculative decoding, prefix caching
+- **Universal hardware support**: NVIDIA, AMD, Apple Silicon, Intel, CPU with automatic optimization
 
-### Target Performance
-- **2-3x faster** than Ollama on single requests
-- **3-4x faster** on concurrent workloads
-- **50-60% less memory** usage via advanced caching
+### Performance Goals
+- **Fast single requests**: 100+ tokens/sec on consumer GPUs
+- **High throughput**: Efficient concurrent request handling
+- **Memory efficient**: 50-60% reduction via advanced caching techniques
 
 ## Quick Start (Coming Soon)
 
@@ -32,9 +32,9 @@ hyperlama serve
 ## Architecture
 
 **Core Technologies**:
-- **Rust (95%)**: API server, CLI, orchestration
-- **Modular MAX Engine**: Hardware-agnostic inference compilation
-- **Fallbacks**: vLLM (GPU), llama.cpp (CPU)
+- **Rust**: API server, CLI, model management, orchestration
+- **Modular MAX Engine**: Primary inference engine with hardware-agnostic compilation
+- **Fallback engines**: vLLM (GPU scenarios), llama.cpp (CPU scenarios)
 
 **Key Optimizations**:
 - Continuous batching (dynamic request scheduling)
