@@ -232,11 +232,69 @@ impl InferenceEngine for MaxEngine {
 
     async fn generate_stream(
         &self,
-        _request: GenerateRequest,
+        request: GenerateRequest,
     ) -> Result<futures::stream::BoxStream<'static, Result<GenerateResponse>>> {
-        Err(Error::EngineNotAvailable(
-            "Streaming not yet implemented for MAX Engine".to_string(),
-        ))
+        use futures::stream::{self, StreamExt};
+
+        let model_id = request.model.clone();
+        let payload = GenerateRequestPayload {
+            model_id: model_id.clone(),
+            prompt: request.prompt.clone(),
+            max_tokens: request.options.sampling.max_tokens,
+            temperature: request.options.sampling.temperature,
+            top_p: request.options.sampling.top_p,
+            stream: true,
+        };
+
+        let url = format!("{}/generate", self.service_url);
+        let response = self
+            .client
+            .post(&url)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| {
+                error!("Streaming request failed: {}", e);
+                Error::InferenceFailed(format!("HTTP request failed: {}", e))
+            })?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let error_text = response.text().await.unwrap_or_default();
+            error!("Streaming failed with status {}: {}", status, error_text);
+            return Err(Error::InferenceFailed(format!(
+                "Status {}: {}",
+                status, error_text
+            )));
+        }
+
+        let bytes_stream = response.bytes_stream();
+        let request_id = request.id;
+
+        let result_stream = bytes_stream
+            .map(move |chunk_result| {
+                let chunk = chunk_result.map_err(|e| Error::InferenceFailed(e.to_string()))?;
+                let text = String::from_utf8_lossy(&chunk).to_string();
+
+                for line in text.lines() {
+                    if let Some(data) = line.strip_prefix("data: ") {
+                        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(data) {
+                            if let Some(text_chunk) = parsed.get("text").and_then(|v| v.as_str()) {
+                                return Ok(
+                                    GenerateResponse::new(RequestId(request_id.0), model_id.clone())
+                                        .with_text(text_chunk.to_string()),
+                                );
+                            }
+                        }
+                    }
+                }
+
+                Ok(GenerateResponse::new(RequestId(request_id.0), model_id.clone())
+                    .with_text(String::new()))
+            })
+            .boxed();
+
+        Ok(result_stream)
     }
 
     async fn health_check(&self) -> Result<bool> {

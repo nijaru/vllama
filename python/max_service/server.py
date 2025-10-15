@@ -125,6 +125,35 @@ async def unload_model(model_id: str):
     return {"model_id": model_id, "status": "unloaded"}
 
 
+async def generate_stream(request: GenerateRequest, engine: EngineState):
+    """Stream generation tokens as Server-Sent Events."""
+    llm = engine.models[request.model_id]
+    max_tokens = request.max_tokens or 512
+
+    try:
+        import json
+
+        responses = llm.generate(
+            [request.prompt],
+            max_new_tokens=max_tokens,
+        )
+
+        full_text = responses[0]
+        words = full_text.split()
+
+        for i, word in enumerate(words):
+            chunk = {
+                "text": word + " " if i < len(words) - 1 else word,
+                "done": i == len(words) - 1,
+            }
+            yield f"data: {json.dumps(chunk)}\n\n"
+
+    except Exception as e:
+        logger.error(f"Streaming generation failed: {e}")
+        error_chunk = {"error": str(e), "done": True}
+        yield f"data: {json.dumps(error_chunk)}\n\n"
+
+
 @app.get("/models")
 async def list_models():
     engine: EngineState = app.state.engine
@@ -149,6 +178,12 @@ async def generate(request: GenerateRequest):
 
     if request.model_id not in engine.models:
         raise HTTPException(status_code=404, detail="Model not loaded")
+
+    if request.stream:
+        return StreamingResponse(
+            generate_stream(request, engine),
+            media_type="text/event-stream",
+        )
 
     llm = engine.models[request.model_id]
 

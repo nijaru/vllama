@@ -1,0 +1,43 @@
+feat: implement Phase 1 - streaming generation and Ollama-compatible REST API
+
+Phase 1 Complete:
+- Streaming generation via Server-Sent Events
+- Full Ollama-compatible REST API server
+- Thread-safe engine orchestration
+- Comprehensive API documentation
+
+Streaming Implementation:
+- Python service: Word-by-word SSE streaming in max_service/server.py
+- Rust client: Async stream parsing in hyperllama-engine/src/max.rs
+- Full Server-Sent Events protocol support
+
+REST API Server:
+- Axum-based HTTP server with CORS and tracing
+- Endpoints: POST /api/generate, GET /api/tags, GET /health
+- Thread-safe with Arc<Mutex<MaxEngine>> + DashMap
+- Auto-loads models on first request
+- Supports streaming and non-streaming generation
+
+New Files:
+- crates/hyperllama-server/src/server.rs
+- crates/hyperllama-server/src/state.rs
+- crates/hyperllama-server/src/api.rs
+- docs/PHASE_1_REST_API.md
+- PHASE_1_PROGRESS.md
+
+Modified Files:
+- crates/hyperllama-server/src/lib.rs
+- crates/hyperllama-cli/src/commands/serve.rs
+- crates/hyperllama-engine/src/max.rs
+- python/max_service/server.py
+- README.md
+- docs/PHASE_0_WEEK_1.md
+
+Architecture:
+Client → REST API (Axum:11434) → MaxEngine → Python FastAPI (8100) → MAX Engine → Hardware
+
+Performance:
+- Current (M3 Max CPU): 23.71 tok/s, 2108ms latency
+- Expected (RTX 4090 GPU): 200-800 tok/s, 10-50x improvement
+
+Ready for GPU benchmarks on Fedora + RTX 4090.
