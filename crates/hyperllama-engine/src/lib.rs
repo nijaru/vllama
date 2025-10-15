@@ -1,4 +1,5 @@
 pub mod engine;
+pub mod http_engine;
 pub mod max;
 pub mod vllm;
 pub mod llama_cpp;
