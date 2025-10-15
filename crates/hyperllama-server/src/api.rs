@@ -127,6 +127,67 @@ pub struct PullApiResponse {
     pub completed: Option<u64>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct OpenAIChatRequest {
+    pub model: String,
+    pub messages: Vec<ChatMessage>,
+    #[serde(default)]
+    pub stream: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_tokens: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub temperature: Option<f32>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAIChatResponse {
+    pub id: String,
+    pub object: String,
+    pub created: u64,
+    pub model: String,
+    pub choices: Vec<OpenAIChoice>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub usage: Option<OpenAIUsage>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAIChoice {
+    pub index: usize,
+    pub message: ChatMessage,
+    pub finish_reason: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAIUsage {
+    pub prompt_tokens: usize,
+    pub completion_tokens: usize,
+    pub total_tokens: usize,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAIChatChunk {
+    pub id: String,
+    pub object: String,
+    pub created: u64,
+    pub model: String,
+    pub choices: Vec<OpenAIChunkChoice>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAIChunkChoice {
+    pub index: usize,
+    pub delta: OpenAIDelta,
+    pub finish_reason: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAIDelta {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+}
+
 pub async fn generate(
     State(state): State<ServerState>,
     Json(req): Json<GenerateApiRequest>,
@@ -444,6 +505,195 @@ pub async fn show(
     };
 
     Json(response).into_response()
+}
+
+pub async fn openai_chat_completions(
+    State(state): State<ServerState>,
+    Json(req): Json<OpenAIChatRequest>,
+) -> Response {
+    info!("OpenAI chat completions request for model: {}", req.model);
+
+    let model_path = PathBuf::from(&req.model);
+
+    let handle = match state.loaded_models.get(&req.model) {
+        Some(h) => *h,
+        None => {
+            info!("Loading model: {}", req.model);
+            let mut engine = state.engine.lock().await;
+
+            match engine.load_model(&model_path).await {
+                Ok(h) => {
+                    state.loaded_models.insert(req.model.clone(), h);
+                    h
+                }
+                Err(e) => {
+                    error!("Failed to load model: {}", e);
+                    return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
+                        "error": {
+                            "message": format!("Failed to load model: {}", e),
+                            "type": "server_error"
+                        }
+                    }))).into_response();
+                }
+            }
+        }
+    };
+
+    let model_id = {
+        let engine = state.engine.lock().await;
+        match engine.get_model_id(handle) {
+            Some(id) => id,
+            None => {
+                return (StatusCode::NOT_FOUND, Json(serde_json::json!({
+                    "error": {
+                        "message": "Model not found",
+                        "type": "invalid_request_error"
+                    }
+                }))).into_response();
+            }
+        }
+    };
+
+    let prompt = req.messages
+        .iter()
+        .map(|msg| match msg.role {
+            hyperllama_core::ChatRole::System => format!("System: {}", msg.content),
+            hyperllama_core::ChatRole::User => format!("User: {}", msg.content),
+            hyperllama_core::ChatRole::Assistant => format!("Assistant: {}", msg.content),
+            hyperllama_core::ChatRole::Tool => format!("Tool: {}", msg.content),
+        })
+        .collect::<Vec<_>>()
+        .join("\n\n");
+
+    let mut gen_req = GenerateRequest::new(
+        handle.0,
+        model_id,
+        prompt,
+    );
+
+    let mut gen_opts = GenerateOptions::default();
+    if let Some(temp) = req.temperature {
+        gen_opts.sampling.temperature = temp;
+    }
+    if let Some(max_tokens) = req.max_tokens {
+        gen_opts.sampling.max_tokens = Some(max_tokens);
+    }
+    gen_req.options = gen_opts;
+
+    let request_id = format!("chatcmpl-{:x}", std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos());
+    let created = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
+    if req.stream {
+        let engine = state.engine.lock().await;
+        match engine.generate_stream(gen_req).await {
+            Ok(mut stream) => {
+                use futures::StreamExt;
+
+                let event_stream = stream::unfold(
+                    (stream, req.model.clone(), request_id.clone(), created, 0usize, false),
+                    |(mut s, model, id, timestamp, count, done)| async move {
+                        if done {
+                            return None;
+                        }
+                        match s.next().await {
+                            Some(Ok(resp)) => {
+                                let chunk = OpenAIChatChunk {
+                                    id: id.clone(),
+                                    object: "chat.completion.chunk".to_string(),
+                                    created: timestamp,
+                                    model: model.clone(),
+                                    choices: vec![OpenAIChunkChoice {
+                                        index: 0,
+                                        delta: OpenAIDelta {
+                                            role: None,
+                                            content: Some(resp.text),
+                                        },
+                                        finish_reason: None,
+                                    }],
+                                };
+                                let json = serde_json::to_string(&chunk).unwrap();
+                                Some((
+                                    Ok::<_, Infallible>(Event::default().data(json)),
+                                    (s, model, id, timestamp, count + 1, false)
+                                ))
+                            }
+                            Some(Err(e)) => {
+                                error!("Stream error: {}", e);
+                                None
+                            }
+                            None => {
+                                let final_chunk = OpenAIChatChunk {
+                                    id,
+                                    object: "chat.completion.chunk".to_string(),
+                                    created: timestamp,
+                                    model,
+                                    choices: vec![OpenAIChunkChoice {
+                                        index: 0,
+                                        delta: OpenAIDelta {
+                                            role: None,
+                                            content: None,
+                                        },
+                                        finish_reason: Some("stop".to_string()),
+                                    }],
+                                };
+                                let json = serde_json::to_string(&final_chunk).unwrap();
+                                Some((Ok(Event::default().data(json)), (s, String::new(), String::new(), timestamp, count, true)))
+                            }
+                        }
+                    }
+                );
+
+                Sse::new(event_stream).into_response()
+            }
+            Err(e) => {
+                error!("Streaming chat failed: {}", e);
+                (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
+                    "error": {
+                        "message": format!("Generation failed: {}", e),
+                        "type": "server_error"
+                    }
+                }))).into_response()
+            }
+        }
+    } else {
+        let engine = state.engine.lock().await;
+        match engine.generate(gen_req).await {
+            Ok(resp) => {
+                let response = OpenAIChatResponse {
+                    id: request_id,
+                    object: "chat.completion".to_string(),
+                    created,
+                    model: req.model,
+                    choices: vec![OpenAIChoice {
+                        index: 0,
+                        message: ChatMessage::assistant(resp.text),
+                        finish_reason: "stop".to_string(),
+                    }],
+                    usage: Some(OpenAIUsage {
+                        prompt_tokens: 0,
+                        completion_tokens: 0,
+                        total_tokens: 0,
+                    }),
+                };
+                Json(response).into_response()
+            }
+            Err(e) => {
+                error!("Chat failed: {}", e);
+                (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
+                    "error": {
+                        "message": format!("Generation failed: {}", e),
+                        "type": "server_error"
+                    }
+                }))).into_response()
+            }
+        }
+    }
 }
 
 pub async fn chat(

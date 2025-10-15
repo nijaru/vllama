@@ -33,6 +33,7 @@ impl Server {
             .route("/api/pull", post(api::pull))
             .route("/api/show", post(api::show))
             .route("/api/tags", get(api::tags))
+            .route("/v1/chat/completions", post(api::openai_chat_completions))
             .route("/health", get(api::health))
             .layer(CorsLayer::permissive())
             .layer(TraceLayer::new_for_http())
