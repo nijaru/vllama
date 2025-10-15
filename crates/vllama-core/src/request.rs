@@ -72,6 +72,7 @@ impl Default for SamplingParams {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct GenerateOptions {
     pub stream: bool,
     pub sampling: SamplingParams,
@@ -79,16 +80,6 @@ pub struct GenerateOptions {
     pub echo_prompt: bool,
 }
 
-impl Default for GenerateOptions {
-    fn default() -> Self {
-        Self {
-            stream: false,
-            sampling: SamplingParams::default(),
-            return_logprobs: false,
-            echo_prompt: false,
-        }
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateRequest {

@@ -56,11 +56,10 @@ impl ModelDownloader {
             Some(f) => f.to_string(),
             None => {
                 if repo_id.ends_with(".gguf") || repo_id.ends_with(".GGUF") {
-                    repo_id.split('/').last().unwrap_or("model.gguf").to_string()
+                    repo_id.split('/').next_back().unwrap_or("model.gguf").to_string()
                 } else {
-                    let model_name = repo_id.split('/').last().unwrap_or("model");
-                    if model_name.ends_with("-GGUF") {
-                        let base_name = &model_name[..model_name.len() - 5];
+                    let model_name = repo_id.split('/').next_back().unwrap_or("model");
+                    if let Some(base_name) = model_name.strip_suffix("-GGUF") {
                         format!("{}-Q4_K_M.gguf", base_name)
                     } else {
                         "model.gguf".to_string()

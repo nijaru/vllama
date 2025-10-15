@@ -4,8 +4,8 @@ use axum::{
     response::{IntoResponse, Response, sse::{Event, Sse}},
     Json,
 };
-use futures::stream::{self, Stream};
-use vllama_core::{ChatMessage, ChatRequest, ChatTemplate, GenerateRequest, GenerateOptions};
+use futures::stream::{self};
+use vllama_core::{ChatMessage, ChatTemplate, GenerateRequest, GenerateOptions};
 use vllama_engine::InferenceEngine;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
@@ -87,6 +87,7 @@ pub struct ChatApiResponse {
 pub struct ShowApiRequest {
     pub model: String,
     #[serde(default)]
+    #[allow(dead_code)]
     pub verbose: bool,
 }
 
@@ -252,7 +253,7 @@ pub async fn generate(
     if req.stream {
         let engine = state.engine.lock().await;
         match engine.generate_stream(gen_req).await {
-            Ok(mut stream) => {
+            Ok(stream) => {
                 use futures::StreamExt;
 
                 let event_stream = stream::unfold(
@@ -390,7 +391,7 @@ pub async fn pull(
         let engine_clone = state.engine.clone();
         let loaded_models_clone = state.loaded_models.clone();
 
-        let (tx, mut rx) = mpsc::channel::<DownloadProgress>(100);
+        let (tx, rx) = mpsc::channel::<DownloadProgress>(100);
 
         tokio::spawn(async move {
             let result = downloader.download_model(
@@ -599,7 +600,7 @@ pub async fn openai_chat_completions(
     if req.stream {
         let engine = state.engine.lock().await;
         match engine.generate_stream(gen_req).await {
-            Ok(mut stream) => {
+            Ok(stream) => {
                 use futures::StreamExt;
 
                 let event_stream = stream::unfold(
@@ -773,7 +774,7 @@ pub async fn chat(
     if req.stream {
         let engine = state.engine.lock().await;
         match engine.generate_stream(gen_req).await {
-            Ok(mut stream) => {
+            Ok(stream) => {
                 use futures::StreamExt;
 
                 let event_stream = stream::unfold(
@@ -854,6 +855,7 @@ pub async fn chat(
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct MaxServiceModel {
     model_id: String,
     model_path: String,
@@ -862,6 +864,7 @@ struct MaxServiceModel {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct MaxServiceGpuStats {
     total_vram: u64,
     used_vram: u64,
@@ -869,6 +872,7 @@ struct MaxServiceGpuStats {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct MaxServiceModelsResponse {
     models: Vec<MaxServiceModel>,
     gpu_stats: Option<MaxServiceGpuStats>,
@@ -893,7 +897,7 @@ pub struct PsResponse {
     pub models: Vec<ProcessInfo>,
 }
 
-pub async fn ps(State(state): State<ServerState>) -> Response {
+pub async fn ps(State(_state): State<ServerState>) -> Response {
     info!("Process status request");
 
     let client = reqwest::Client::new();

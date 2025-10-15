@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct Config {
     pub models_dir: PathBuf,
     pub server_host: String,
@@ -22,6 +23,7 @@ impl Default for Config {
     }
 }
 
+#[allow(dead_code)]
 impl Config {
     pub fn load() -> Result<Self> {
         Ok(Self::default())
