@@ -1,7 +1,7 @@
 # HyperLlama - Project Status
 
 **Last Updated:** 2025-10-15
-**Version:** Phase 2 (1/4 P0 features complete)
+**Version:** Phase 2 P0 Complete ✅
 
 ## What Is HyperLlama?
 
@@ -21,7 +21,9 @@ Fast LLM inference server with Ollama-compatible API, powered by Modular MAX Eng
 - ✅ `GET /health` - Health check
 - ✅ `POST /api/generate` - Text generation (streaming + non-streaming)
 - ✅ `POST /api/chat` - Chat completions (streaming + non-streaming)
-- ✅ `GET /api/tags` - List models (returns empty, models auto-load on first use)
+- ✅ `POST /api/pull` - Model downloads with progress tracking
+- ✅ `POST /api/show` - Model metadata (modelfile, parameters, details)
+- ✅ `GET /api/tags` - List loaded models
 
 **Infrastructure:**
 - ✅ Rust server (Axum) on port 11434
@@ -46,9 +48,13 @@ Fast LLM inference server with Ollama-compatible API, powered by Modular MAX Eng
 - ⚠️ Benchmark compares direct Python calls vs REST API (not vs real Ollama)
 - Need proper baseline: vLLM or actual Ollama on same hardware
 
-**Missing core features:**
-- ❌ Model management (pull, show)
-- ❌ OpenAI `/v1/chat/completions` compatibility
+**Phase 2 P0 - Complete!**
+All core model management endpoints implemented.
+
+**Remaining features (P1/P2):**
+- ⏸️ OpenAI `/v1/chat/completions` compatibility (P1)
+- ⏸️ Performance monitoring `/api/ps` (P1)
+- ⏸️ Better prompt templates for chat (improvement)
 
 ## Phase 2 Roadmap - Core UX Features
 
@@ -197,11 +203,15 @@ hyperllama/
 - [x] Streaming generation working
 - [x] Auto model loading
 
-**Phase 2 Goals:**
+**Phase 2 Goals (P0):**
 - [x] Chat completions working
-- [ ] Model pull from HuggingFace
-- [ ] OpenAI API compatibility
+- [x] Model pull from HuggingFace
+- [x] Model metadata (show, tags)
 - [x] 50+ tok/s on RTX 4090 (8B model)
+
+**Phase 2 Goals (P1):**
+- [ ] OpenAI API compatibility
+- [ ] Performance monitoring
 
 **Phase 3 Goals:**
 - [ ] vLLM backend integrated
