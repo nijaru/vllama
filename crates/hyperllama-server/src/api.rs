@@ -210,7 +210,7 @@ pub async fn generate(
                 Err(e) => {
                     error!("Failed to load model: {}", e);
                     return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-                        "error": format!("Failed to load model: {}", e)
+                        "error": format!("Failed to load model: {}. Tip: Use HuggingFace repo IDs (e.g., 'bartowski/Llama-3.2-1B-Instruct-GGUF') and download with /api/pull first.", e)
                     }))).into_response();
                 }
             }
@@ -223,7 +223,7 @@ pub async fn generate(
             Some(id) => id,
             None => {
                 return (StatusCode::NOT_FOUND, Json(serde_json::json!({
-                    "error": "Model not found"
+                    "error": format!("Model '{}' not found. If this is a HuggingFace model, use /api/pull to download it first: curl -X POST http://localhost:11434/api/pull -d '{{\"model\":\"{}\"}}' ", req.model, req.model)
                 }))).into_response();
             }
         }
@@ -459,7 +459,7 @@ pub async fn pull(
                     Err(e) => {
                         error!("Failed to load model: {}", e);
                         (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-                            "error": format!("Failed to load model: {}", e)
+                            "error": format!("Downloaded model successfully but failed to load it: {}. This may be due to MAX Engine limitations (only supports whitelisted models).", e)
                         }))).into_response()
                     }
                 }
@@ -467,7 +467,7 @@ pub async fn pull(
             Err(e) => {
                 error!("Failed to download model: {}", e);
                 (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-                    "error": format!("Failed to download model: {}", e)
+                    "error": format!("Failed to download model from HuggingFace: {}. Check that the model repo and file exist. Example: 'bartowski/Llama-3.2-1B-Instruct-GGUF'", e)
                 }))).into_response()
             }
         }
@@ -542,7 +542,7 @@ pub async fn openai_chat_completions(
                     error!("Failed to load model: {}", e);
                     return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
                         "error": {
-                            "message": format!("Failed to load model: {}", e),
+                            "message": format!("Failed to load model: {}. Tip: Use HuggingFace repo IDs (e.g., 'bartowski/Llama-3.2-1B-Instruct-GGUF') and download with /api/pull first.", e),
                             "type": "server_error"
                         }
                     }))).into_response();
@@ -558,7 +558,7 @@ pub async fn openai_chat_completions(
             None => {
                 return (StatusCode::NOT_FOUND, Json(serde_json::json!({
                     "error": {
-                        "message": "Model not found",
+                        "message": format!("Model '{}' not found. If this is a HuggingFace model, use /api/pull to download it first.", req.model),
                         "type": "invalid_request_error"
                     }
                 }))).into_response();
@@ -725,7 +725,7 @@ pub async fn chat(
                 Err(e) => {
                     error!("Failed to load model: {}", e);
                     return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-                        "error": format!("Failed to load model: {}", e)
+                        "error": format!("Failed to load model: {}. Tip: Use HuggingFace repo IDs (e.g., 'bartowski/Llama-3.2-1B-Instruct-GGUF') and download with /api/pull first.", e)
                     }))).into_response();
                 }
             }
@@ -738,7 +738,7 @@ pub async fn chat(
             Some(id) => id,
             None => {
                 return (StatusCode::NOT_FOUND, Json(serde_json::json!({
-                    "error": "Model not found"
+                    "error": format!("Model '{}' not found. If this is a HuggingFace model, use /api/pull to download it first: curl -X POST http://localhost:11434/api/pull -d '{{\"model\":\"{}\"}}' ", req.model, req.model)
                 }))).into_response();
             }
         }
@@ -969,7 +969,7 @@ pub async fn ps(State(state): State<ServerState>) -> Response {
         Err(e) => {
             error!("Failed to connect to MAX service: {}", e);
             (StatusCode::SERVICE_UNAVAILABLE, Json(serde_json::json!({
-                "error": "MAX service unavailable"
+                "error": "MAX service unavailable. Ensure the MAX inference service is running at http://127.0.0.1:8100. Check python/max_service/server.py"
             }))).into_response()
         }
     }
