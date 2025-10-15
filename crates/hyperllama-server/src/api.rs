@@ -83,6 +83,31 @@ pub struct ChatApiResponse {
     pub eval_count: Option<usize>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct ShowApiRequest {
+    pub model: String,
+    #[serde(default)]
+    pub verbose: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ShowApiResponse {
+    pub modelfile: String,
+    pub parameters: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub template: Option<String>,
+    pub details: ModelDetails,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ModelDetails {
+    pub parent_model: String,
+    pub format: String,
+    pub family: String,
+    pub parameter_size: String,
+    pub quantization_level: String,
+}
+
 pub async fn generate(
     State(state): State<ServerState>,
     Json(req): Json<GenerateApiRequest>,
@@ -250,6 +275,51 @@ pub async fn tags(State(state): State<ServerState>) -> Json<TagsResponse> {
 
 pub async fn health() -> &'static str {
     "OK"
+}
+
+pub async fn show(
+    State(state): State<ServerState>,
+    Json(req): Json<ShowApiRequest>,
+) -> Response {
+    info!("Show request for model: {}", req.model);
+
+    if !state.loaded_models.contains_key(&req.model) {
+        return (StatusCode::NOT_FOUND, Json(serde_json::json!({
+            "error": format!("Model '{}' not found. Load it first by making a generate or chat request.", req.model)
+        }))).into_response();
+    }
+
+    let model_name = &req.model;
+
+    let (family, parameter_size, format) = if model_name.contains("Llama") || model_name.contains("llama") {
+        let size = if model_name.contains("70B") {
+            "70B"
+        } else if model_name.contains("8B") {
+            "8B"
+        } else if model_name.contains("3B") {
+            "3B"
+        } else {
+            "unknown"
+        };
+        ("llama", size, "gguf")
+    } else {
+        ("unknown", "unknown", "gguf")
+    };
+
+    let response = ShowApiResponse {
+        modelfile: format!("# Modelfile for {}\n# Loaded via HyperLlama", model_name),
+        parameters: "temperature 0.7\ntop_p 0.9\nrepetition_penalty 1.0".to_string(),
+        template: Some("{{ .System }}\n{{ .Prompt }}".to_string()),
+        details: ModelDetails {
+            parent_model: model_name.clone(),
+            format: format.to_string(),
+            family: family.to_string(),
+            parameter_size: parameter_size.to_string(),
+            quantization_level: "Q4_K_M".to_string(),
+        },
+    };
+
+    Json(response).into_response()
 }
 
 pub async fn chat(
