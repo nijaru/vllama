@@ -13,8 +13,8 @@ pub async fn run(host: String, port: u16) -> Result<()> {
     println!("  GET  {}:{}/health - Health check", host, port);
     println!();
 
-    let server = Server::new(host, port)?;
-    server.run().await?;
+    let server = Server::new(host, port).map_err(|e| anyhow::anyhow!("{}", e))?;
+    server.run().await.map_err(|e| anyhow::anyhow!("{}", e))?;
 
     Ok(())
 }

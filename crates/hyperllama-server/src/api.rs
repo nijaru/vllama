@@ -73,7 +73,7 @@ pub async fn generate(
         Some(h) => *h,
         None => {
             info!("Loading model: {}", req.model);
-            let mut engine = state.engine.lock();
+            let mut engine = state.engine.lock().await;
 
             match engine.load_model(&model_path).await {
                 Ok(h) => {
@@ -91,7 +91,7 @@ pub async fn generate(
     };
 
     let model_id = {
-        let engine = state.engine.lock();
+        let engine = state.engine.lock().await;
         match engine.get_model_id(handle) {
             Some(id) => id,
             None => {
@@ -123,14 +123,17 @@ pub async fn generate(
     }
 
     if req.stream {
-        let engine = state.engine.lock();
+        let engine = state.engine.lock().await;
         match engine.generate_stream(gen_req).await {
             Ok(mut stream) => {
                 use futures::StreamExt;
 
                 let event_stream = stream::unfold(
-                    (stream, req.model.clone(), 0usize),
-                    |(mut s, model, count)| async move {
+                    (stream, req.model.clone(), 0usize, false),
+                    |(mut s, model, count, done)| async move {
+                        if done {
+                            return None;
+                        }
                         match s.next().await {
                             Some(Ok(resp)) => {
                                 let event = GenerateApiResponse {
@@ -143,7 +146,7 @@ pub async fn generate(
                                 let json = serde_json::to_string(&event).unwrap();
                                 Some((
                                     Ok::<_, Infallible>(Event::default().data(json)),
-                                    (s, model, count + 1)
+                                    (s, model, count + 1, false)
                                 ))
                             }
                             Some(Err(e)) => {
@@ -159,7 +162,7 @@ pub async fn generate(
                                     eval_count: Some(count),
                                 };
                                 let json = serde_json::to_string(&final_event).unwrap();
-                                Some((Ok(Event::default().data(json)), (s, String::new(), 0)))
+                                Some((Ok(Event::default().data(json)), (s, String::new(), count, true)))
                             }
                         }
                     }
@@ -176,7 +179,7 @@ pub async fn generate(
         }
     } else {
         let start = Instant::now();
-        let engine = state.engine.lock();
+        let engine = state.engine.lock().await;
         match engine.generate(gen_req).await {
             Ok(resp) => {
                 let duration = start.elapsed();

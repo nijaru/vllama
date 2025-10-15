@@ -46,3 +46,5 @@ venv/
 
 # MAX/Modular
 .modular/
+external/
+python/external/

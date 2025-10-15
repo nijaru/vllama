@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 class LoadModelRequest(BaseModel):
     model_path: str
     max_length: int = 32768
+    device: str = "auto"  # "auto", "cpu", "cuda"
 
 
 class GenerateRequest(BaseModel):
@@ -90,11 +91,15 @@ async def load_model(request: LoadModelRequest):
         return {"model_id": model_id, "status": "already_loaded"}
 
     try:
-        logger.info(f"Loading model: {request.model_path}")
-        pipeline_config = PipelineConfig(
-            model_path=request.model_path,
-            max_length=request.max_length,
-        )
+        logger.info(f"Loading model: {request.model_path} on device: {request.device}")
+        config_kwargs = {
+            "model_path": request.model_path,
+            "max_length": request.max_length,
+        }
+        if request.device != "auto":
+            config_kwargs["device"] = request.device
+
+        pipeline_config = PipelineConfig(**config_kwargs)
         llm = LLM(pipeline_config)
 
         engine.models[model_id] = llm

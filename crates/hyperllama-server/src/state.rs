@@ -1,7 +1,7 @@
 use dashmap::DashMap;
 use hyperllama_engine::MaxEngine;
 use hyperllama_core::ModelHandle;
-use parking_lot::Mutex;
+use tokio::sync::Mutex;
 use std::sync::Arc;
 
 #[derive(Clone)]
