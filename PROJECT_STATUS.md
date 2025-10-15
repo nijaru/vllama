@@ -1,7 +1,7 @@
 # HyperLlama - Project Status
 
 **Last Updated:** 2025-10-15
-**Version:** Phase 1 Complete
+**Version:** Phase 2 (1/4 P0 features complete)
 
 ## What Is HyperLlama?
 
@@ -20,6 +20,7 @@ Fast LLM inference server with Ollama-compatible API, powered by Modular MAX Eng
 **REST API (Ollama-compatible):**
 - ✅ `GET /health` - Health check
 - ✅ `POST /api/generate` - Text generation (streaming + non-streaming)
+- ✅ `POST /api/chat` - Chat completions (streaming + non-streaming)
 - ✅ `GET /api/tags` - List models (returns empty, models auto-load on first use)
 
 **Infrastructure:**
@@ -46,7 +47,6 @@ Fast LLM inference server with Ollama-compatible API, powered by Modular MAX Eng
 - Need proper baseline: vLLM or actual Ollama on same hardware
 
 **Missing core features:**
-- ❌ `/api/chat` - Chat completions (most commonly used!)
 - ❌ Model management (pull, show)
 - ❌ OpenAI `/v1/chat/completions` compatibility
 
@@ -198,10 +198,10 @@ hyperllama/
 - [x] Auto model loading
 
 **Phase 2 Goals:**
-- [ ] Chat completions working
+- [x] Chat completions working
 - [ ] Model pull from HuggingFace
 - [ ] OpenAI API compatibility
-- [ ] 50+ tok/s on RTX 4090 (8B model)
+- [x] 50+ tok/s on RTX 4090 (8B model)
 
 **Phase 3 Goals:**
 - [ ] vLLM backend integrated
@@ -223,8 +223,8 @@ hyperllama/
 ## Next Session
 
 **Immediate priorities:**
-1. Implement `/api/chat` endpoint
+1. ✅ Implement `/api/chat` endpoint - DONE
 2. Fix `/api/tags` to show loaded models
 3. Add `/api/pull` with progress tracking
-4. Create proper benchmark vs vLLM
-5. Clean up old documentation files
+4. Add `/api/show` for model metadata
+5. Improve chat prompt formatting (use Llama 3.1 chat template)
