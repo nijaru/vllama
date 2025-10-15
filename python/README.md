@@ -1,8 +1,30 @@
-# HyperLlama Python Services
+# vLLama Python Services
 
-This directory contains Python microservices that bridge HyperLlama (Rust) with Python-based inference engines.
+This directory contains Python microservices that bridge vLLama (Rust) with Python-based inference engines.
 
-## MAX Engine Service
+## vLLM Service (Primary)
+
+Thin wrapper around vLLM's Python API.
+
+### Installation
+
+```bash
+# Install Python dependencies
+uv pip install -r requirements.txt
+```
+
+### Running
+
+```bash
+# Start the service
+uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
+```
+
+### API
+
+Same endpoints as MAX Engine service below.
+
+## MAX Engine Service (Alternative)
 
 Thin wrapper around MAX Engine's Python API.
 

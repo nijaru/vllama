@@ -1,5 +1,5 @@
 """
-vLLM Engine wrapper service for HyperLlama.
+vLLM Engine wrapper service for vLLama.
 
 This provides a simple HTTP interface to vLLM's Python API,
 allowing the Rust code to communicate with vLLM via HTTP.

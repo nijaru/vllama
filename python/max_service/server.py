@@ -1,5 +1,5 @@
 """
-MAX Engine wrapper service for HyperLlama.
+MAX Engine wrapper service for vLLama.
 
 This provides a simple HTTP interface to MAX Engine's Python API,
 allowing the Rust code to communicate with MAX via HTTP.
