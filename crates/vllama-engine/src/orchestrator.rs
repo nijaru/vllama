@@ -1,6 +1,6 @@
 use crate::engine::{EngineType, InferenceEngine};
 use crate::{llama_cpp::LlamaCppEngine, max::MaxEngine, vllm::VllmEngine};
-use hyperllama_core::{Hardware, Result};
+use vllama_core::{Hardware, Result};
 use std::sync::Arc;
 use tracing::{info, warn};
 

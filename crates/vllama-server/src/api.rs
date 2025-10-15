@@ -5,8 +5,8 @@ use axum::{
     Json,
 };
 use futures::stream::{self, Stream};
-use hyperllama_core::{ChatMessage, ChatRequest, ChatTemplate, GenerateRequest, GenerateOptions};
-use hyperllama_engine::InferenceEngine;
+use vllama_core::{ChatMessage, ChatRequest, ChatTemplate, GenerateRequest, GenerateOptions};
+use vllama_engine::InferenceEngine;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
 use std::convert::Infallible;
@@ -372,7 +372,7 @@ pub async fn pull(
         }).into_response();
     }
 
-    use hyperllama_core::{ModelDownloader, DownloadProgress};
+    use vllama_core::{ModelDownloader, DownloadProgress};
     use tokio::sync::mpsc;
 
     let downloader = match ModelDownloader::new() {
@@ -504,7 +504,7 @@ pub async fn show(
     };
 
     let response = ShowApiResponse {
-        modelfile: format!("# Modelfile for {}\n# Loaded via HyperLlama", model_name),
+        modelfile: format!("# Modelfile for {}\n# Loaded via vLLama", model_name),
         parameters: "temperature 0.7\ntop_p 0.9\nrepetition_penalty 1.0".to_string(),
         template: Some("{{ .System }}\n{{ .Prompt }}".to_string()),
         details: ModelDetails {
@@ -567,9 +567,9 @@ pub async fn openai_chat_completions(
     };
 
     let prompt = if req.model.to_lowercase().contains("llama") {
-        hyperllama_core::Llama3Template.apply(&req.messages)
+        vllama_core::Llama3Template.apply(&req.messages)
     } else {
-        hyperllama_core::SimpleChatTemplate.apply(&req.messages)
+        vllama_core::SimpleChatTemplate.apply(&req.messages)
     };
 
     let mut gen_req = GenerateRequest::new(
@@ -745,9 +745,9 @@ pub async fn chat(
     };
 
     let prompt = if req.model.to_lowercase().contains("llama") {
-        hyperllama_core::Llama3Template.apply(&req.messages)
+        vllama_core::Llama3Template.apply(&req.messages)
     } else {
-        hyperllama_core::SimpleChatTemplate.apply(&req.messages)
+        vllama_core::SimpleChatTemplate.apply(&req.messages)
     };
 
     let mut gen_req = GenerateRequest::new(

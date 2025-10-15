@@ -41,7 +41,7 @@ impl Server {
             .with_state(self.state);
 
         let addr = format!("{}:{}", self.host, self.port);
-        info!("Starting HyperLlama server on {}", addr);
+        info!("Starting vLLama server on {}", addr);
 
         let listener = tokio::net::TcpListener::bind(&addr).await?;
         axum::serve(listener, app).await?;

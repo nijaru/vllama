@@ -1,10 +1,10 @@
 use anyhow::Result;
-use hyperllama_server::Server;
+use vllama_server::Server;
 use tracing::info;
 
 pub async fn run(host: String, port: u16) -> Result<()> {
-    info!("Starting HyperLlama server on {}:{}", host, port);
-    println!("HyperLlama server starting on {}:{}", host, port);
+    info!("Starting vLLama server on {}:{}", host, port);
+    println!("vLLama server starting on {}:{}", host, port);
     println!("Press Ctrl+C to stop");
     println!();
     println!("API Endpoints:");

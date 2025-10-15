@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use hyperllama_core::{GenerateRequest, GenerateResponse, Hardware, ModelHandle, Result};
+use vllama_core::{GenerateRequest, GenerateResponse, Hardware, ModelHandle, Result};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 

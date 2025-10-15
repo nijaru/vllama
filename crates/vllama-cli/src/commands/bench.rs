@@ -1,12 +1,12 @@
 use anyhow::Result;
-use hyperllama_core::{GenerateRequest, Hardware};
-use hyperllama_engine::{InferenceEngine, MaxEngine};
+use vllama_core::{GenerateRequest, Hardware};
+use vllama_engine::{InferenceEngine, MaxEngine};
 use std::path::PathBuf;
 use std::time::Instant;
 use tracing::{info, warn};
 
 pub async fn execute(model: String, prompt: String, iterations: usize) -> Result<()> {
-    println!("HyperLlama Benchmark");
+    println!("vLLama Benchmark");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     println!("Model: {}", model);
     println!("Prompt: {}", prompt);

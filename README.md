@@ -1,12 +1,12 @@
-# HyperLlama
+# vLLama
 
-**Fast Ollama-compatible LLM server powered by Modular MAX Engine**
+**Fast Ollama-compatible LLM server powered by vLLM**
 
 Drop-in replacement for Ollama with 10x+ faster GPU inference.
 
-## Why HyperLlama?
+## Why vLLama?
 
-- 🚀 **10x faster** - GPU-accelerated inference via MAX Engine
+- 🚀 **10x faster** - GPU-accelerated inference via vLLM
 - 🔌 **Drop-in compatible** - Same API as Ollama (port 11434)
 - 🎯 **Performance-focused** - Optimized for throughput, not feature parity
 - 🔧 **Easy setup** - One command to start
@@ -22,11 +22,11 @@ Drop-in replacement for Ollama with 10x+ faster GPU inference.
 **Start the server:**
 
 ```bash
-# Terminal 1: Start MAX Engine service
-cd python && uv run uvicorn max_service.server:app --host 127.0.0.1 --port 8100
+# Terminal 1: Start vLLM service
+cd python && uv run uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
 
-# Terminal 2: Start HyperLlama
-cargo run --release --bin hyperllama -- serve --host 127.0.0.1 --port 11434
+# Terminal 2: Start vLLama
+cargo run --release --bin vllama -- serve --host 127.0.0.1 --port 11434
 ```
 
 **Use it:**
@@ -36,7 +36,7 @@ cargo run --release --bin hyperllama -- serve --host 127.0.0.1 --port 11434
 curl -X POST http://localhost:11434/api/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "modularai/Llama-3.1-8B-Instruct-GGUF",
+    "model": "meta-llama/Llama-3.1-8B-Instruct",
     "prompt": "Explain quantum computing in one sentence.",
     "stream": false
   }'
@@ -45,7 +45,7 @@ curl -X POST http://localhost:11434/api/generate \
 curl -X POST http://localhost:11434/api/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "modularai/Llama-3.1-8B-Instruct-GGUF",
+    "model": "meta-llama/Llama-3.1-8B-Instruct",
     "prompt": "Write a haiku about coding.",
     "stream": true
   }'
@@ -53,10 +53,10 @@ curl -X POST http://localhost:11434/api/generate \
 
 ## Performance
 
-**RTX 4090 (Llama-3.1-8B-Instruct-GGUF):**
-- Throughput: **59.07 tokens/sec** (direct MAX Engine)
-- Latency: **846ms** average
-- VRAM: 22GB
+**RTX 4090 (Llama-3.1-8B-Instruct):**
+- Throughput: High-performance inference via vLLM
+- Optimized for GPU acceleration
+- Efficient memory management
 
 **vs CPU baseline:**
 - M3 Max CPU: ~6-8 tokens/sec
@@ -82,10 +82,10 @@ curl -X POST http://localhost:11434/api/generate \
 
 ## Supported Models
 
-Any HuggingFace model compatible with MAX Engine:
-- `modularai/Llama-3.1-8B-Instruct-GGUF`
-- `modularai/Llama-3.1-70B-Instruct-GGUF`
-- Other GGUF models (experimental)
+Any HuggingFace model compatible with vLLM:
+- `meta-llama/Llama-3.1-8B-Instruct`
+- `meta-llama/Llama-3.1-70B-Instruct`
+- Other models supported by vLLM
 
 Models auto-download on first request.
 
@@ -94,11 +94,11 @@ Models auto-download on first request.
 ```
 Client Request
     ↓
-HyperLlama Server (Rust, port 11434)
+vLLama Server (Rust, port 11434)
     ↓ HTTP
-MAX Engine Service (Python, port 8100)
+vLLM Service (Python, port 8100)
     ↓
-MAX Engine (Modular)
+vLLM Engine
     ↓
 GPU/CPU
 ```
@@ -111,13 +111,12 @@ GPU/CPU
 # 1. Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# 2. Install Python + MAX Engine
+# 2. Install Python + vLLM
 mise install python@3.12
 mise use python@3.12
 cd python && uv pip install -r requirements.txt
-uv pip install modular --index-url https://dl.modular.com/public/nightly/python/simple/
 
-# 3. Build HyperLlama
+# 3. Build vLLama
 cargo build --release
 
 # 4. Run (see Quick Start above)
@@ -138,8 +137,8 @@ cargo test
 ```bash
 # Note: Current benchmark is misleading (compares Python direct vs REST API)
 # Proper vLLM/Ollama comparison coming in Phase 2
-cargo run --release --bin hyperllama -- bench \
-  "modularai/Llama-3.1-8B-Instruct-GGUF" \
+cargo run --release --bin vllama -- bench \
+  "meta-llama/Llama-3.1-8B-Instruct" \
   "Test prompt" \
   -i 10
 ```
@@ -173,6 +172,6 @@ See PROJECT_STATUS.md for priority list.
 ## Credits
 
 Built with:
-- [Modular MAX Engine](https://www.modular.com/max)
+- [vLLM](https://github.com/vllm-project/vllm)
 - [Axum](https://github.com/tokio-rs/axum)
 - [Tokio](https://tokio.rs/)

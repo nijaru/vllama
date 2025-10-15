@@ -12,7 +12,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
-        let models_dir = PathBuf::from(home).join(".hyperllama").join("models");
+        let models_dir = PathBuf::from(home).join(".vllama").join("models");
 
         Self {
             models_dir,

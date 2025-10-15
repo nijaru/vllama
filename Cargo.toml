@@ -1,20 +1,20 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/hyperllama-cli",
-    "crates/hyperllama-server",
-    "crates/hyperllama-core",
-    "crates/hyperllama-engine",
-    "crates/hyperllama-models",
+    "crates/vllama-cli",
+    "crates/vllama-server",
+    "crates/vllama-core",
+    "crates/vllama-engine",
+    "crates/vllama-models",
 ]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
-authors = ["HyperLlama Contributors"]
+authors = ["vLLama Contributors"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/nijaru/hyperllama"
+repository = "https://github.com/nijaru/vllama"
 
 [workspace.dependencies]
 # Web framework
@@ -59,11 +59,11 @@ parking_lot = "0.12"
 sysinfo = "0.30"
 
 # Workspace crates
-hyperllama-cli = { path = "crates/hyperllama-cli" }
-hyperllama-server = { path = "crates/hyperllama-server" }
-hyperllama-core = { path = "crates/hyperllama-core" }
-hyperllama-engine = { path = "crates/hyperllama-engine" }
-hyperllama-models = { path = "crates/hyperllama-models" }
+vllama-cli = { path = "crates/vllama-cli" }
+vllama-server = { path = "crates/vllama-server" }
+vllama-core = { path = "crates/vllama-core" }
+vllama-engine = { path = "crates/vllama-engine" }
+vllama-models = { path = "crates/vllama-models" }
 
 [profile.release]
 opt-level = 3

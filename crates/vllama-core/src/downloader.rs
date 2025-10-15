@@ -30,7 +30,7 @@ impl ModelDownloader {
             .or_else(|_| std::env::var("USERPROFILE"))
             .map_err(|_| Error::ConfigError("HOME directory not found".to_string()))?;
 
-        Ok(PathBuf::from(home).join(".cache").join("hyperllama").join("models"))
+        Ok(PathBuf::from(home).join(".cache").join("vllama").join("models"))
     }
 
     pub fn get_model_dir(&self, repo_id: &str) -> PathBuf {
@@ -167,7 +167,7 @@ mod tests {
     #[test]
     fn test_cache_dir() {
         let downloader = ModelDownloader::new().unwrap();
-        assert!(downloader.cache_dir.to_string_lossy().contains("hyperllama"));
+        assert!(downloader.cache_dir.to_string_lossy().contains("vllama"));
     }
 
     #[test]

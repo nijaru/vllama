@@ -1,6 +1,6 @@
 use dashmap::DashMap;
-use hyperllama_engine::MaxEngine;
-use hyperllama_core::ModelHandle;
+use vllama_engine::MaxEngine;
+use vllama_core::ModelHandle;
 use tokio::sync::Mutex;
 use std::sync::Arc;
 

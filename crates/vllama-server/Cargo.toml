@@ -1,5 +1,5 @@
 [package]
-name = "hyperllama-server"
+name = "vllama-server"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,9 +8,9 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-hyperllama-core = { workspace = true }
-hyperllama-engine = { workspace = true }
-hyperllama-models = { workspace = true }
+vllama-core = { workspace = true }
+vllama-engine = { workspace = true }
+vllama-models = { workspace = true }
 
 axum = { workspace = true }
 tokio = { workspace = true }

@@ -1,4 +1,4 @@
-use hyperllama_core::{
+use vllama_core::{
     Error, GenerateRequest, GenerateResponse, ModelHandle, RequestId, Result,
 };
 use serde::{Deserialize, Serialize};

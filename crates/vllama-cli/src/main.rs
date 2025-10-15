@@ -7,7 +7,7 @@ use commands::*;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser)]
-#[command(name = "hyperllama")]
+#[command(name = "vllama")]
 #[command(about = "High-performance local LLM inference server", long_about = None)]
 #[command(version)]
 struct Cli {
@@ -23,7 +23,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    #[command(about = "Start the HyperLlama server")]
+    #[command(about = "Start the vLLama server")]
     Serve {
         #[arg(long, default_value = "127.0.0.1", help = "Server host address")]
         host: String,
@@ -155,9 +155,9 @@ async fn main() -> Result<()> {
 
 fn init_tracing(verbose: bool) {
     let filter = if verbose {
-        "hyperllama=debug,info"
+        "vllama=debug,info"
     } else {
-        "hyperllama=info,warn"
+        "vllama=info,warn"
     };
 
     tracing_subscriber::registry()

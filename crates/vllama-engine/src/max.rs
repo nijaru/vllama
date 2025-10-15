@@ -1,15 +1,15 @@
 use crate::engine::{EngineCapabilities, EngineType, InferenceEngine};
 use crate::http_engine::HttpEngineClient;
 use async_trait::async_trait;
-use hyperllama_core::{GenerateRequest, GenerateResponse, Hardware, ModelHandle, Result};
+use vllama_core::{GenerateRequest, GenerateResponse, Hardware, ModelHandle, Result};
 use std::path::Path;
 
-pub struct VllmEngine {
+pub struct MaxEngine {
     capabilities: EngineCapabilities,
     client: HttpEngineClient,
 }
 
-impl VllmEngine {
+impl MaxEngine {
     pub fn new() -> Result<Self> {
         Self::with_service_url("http://127.0.0.1:8100")
     }
@@ -20,17 +20,12 @@ impl VllmEngine {
                 supports_continuous_batching: true,
                 supports_flash_attention: true,
                 supports_paged_attention: true,
-                supports_speculative_decoding: true,
-                supports_quantization: vec![
-                    "awq".to_string(),
-                    "gptq".to_string(),
-                    "squeezellm".to_string(),
-                    "gguf".to_string(),
-                ],
-                max_batch_size: 256,
+                supports_speculative_decoding: false,
+                supports_quantization: vec!["int8".to_string(), "int4".to_string()],
+                max_batch_size: 128,
                 max_sequence_length: 32768,
             },
-            client: HttpEngineClient::new(url, "vLLM"),
+            client: HttpEngineClient::new(url, "MAX"),
         })
     }
 
@@ -39,16 +34,16 @@ impl VllmEngine {
     }
 }
 
-impl Default for VllmEngine {
+impl Default for MaxEngine {
     fn default() -> Self {
-        Self::new().expect("Failed to create VllmEngine")
+        Self::new().expect("Failed to create MaxEngine")
     }
 }
 
 #[async_trait]
-impl InferenceEngine for VllmEngine {
+impl InferenceEngine for MaxEngine {
     fn engine_type(&self) -> EngineType {
-        EngineType::Vllm
+        EngineType::Max
     }
 
     fn capabilities(&self) -> EngineCapabilities {
@@ -79,6 +74,6 @@ impl InferenceEngine for VllmEngine {
     }
 
     async fn health_check(&self) -> Result<bool> {
-        self.client.health_check("vllm_available").await
+        self.client.health_check("max_available").await
     }
 }

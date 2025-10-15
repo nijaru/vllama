@@ -1,5 +1,5 @@
 [package]
-name = "hyperllama-core"
+name = "vllama-core"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

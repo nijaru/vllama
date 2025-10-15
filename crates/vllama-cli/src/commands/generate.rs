@@ -1,6 +1,6 @@
 use anyhow::Result;
-use hyperllama_core::GenerateRequest;
-use hyperllama_engine::{InferenceEngine, MaxEngine};
+use vllama_core::GenerateRequest;
+use vllama_engine::{InferenceEngine, MaxEngine};
 use std::path::PathBuf;
 use tracing::info;
 

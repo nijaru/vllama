@@ -1,6 +1,6 @@
 use crate::engine::{EngineCapabilities, EngineType, InferenceEngine};
 use async_trait::async_trait;
-use hyperllama_core::{GenerateRequest, GenerateResponse, Hardware, ModelHandle, Result, Error};
+use vllama_core::{GenerateRequest, GenerateResponse, Hardware, ModelHandle, Result, Error};
 use std::path::Path;
 
 pub struct LlamaCppEngine {

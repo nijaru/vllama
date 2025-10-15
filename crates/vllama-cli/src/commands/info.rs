@@ -1,5 +1,5 @@
 use anyhow::Result;
-use hyperllama_core::Hardware;
+use vllama_core::Hardware;
 
 pub async fn execute() -> Result<()> {
     let hw = Hardware::detect();
