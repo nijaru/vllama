@@ -8,7 +8,9 @@ use futures::stream::{self, Stream};
 use hyperllama_core::{ChatMessage, ChatRequest, GenerateRequest, GenerateOptions};
 use hyperllama_engine::InferenceEngine;
 use serde::{Deserialize, Serialize};
+use std::collections::hash_map::DefaultHasher;
 use std::convert::Infallible;
+use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
 use std::time::Instant;
 use tracing::{error, info};
@@ -221,10 +223,29 @@ pub async fn generate(
     }
 }
 
-pub async fn tags(State(_state): State<ServerState>) -> Json<TagsResponse> {
-    Json(TagsResponse {
-        models: vec![],
-    })
+pub async fn tags(State(state): State<ServerState>) -> Json<TagsResponse> {
+    let mut models = Vec::new();
+
+    for entry in state.loaded_models.iter() {
+        let model_name = entry.key().clone();
+
+        let size = match std::fs::metadata(&model_name) {
+            Ok(metadata) => metadata.len(),
+            Err(_) => 0,
+        };
+
+        let mut hasher = DefaultHasher::new();
+        model_name.hash(&mut hasher);
+        let digest = format!("{:x}", hasher.finish());
+
+        models.push(ModelInfo {
+            name: model_name,
+            size,
+            digest,
+        });
+    }
+
+    Json(TagsResponse { models })
 }
 
 pub async fn health() -> &'static str {
