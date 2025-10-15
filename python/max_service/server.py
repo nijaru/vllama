@@ -52,6 +52,34 @@ class ModelInfo(BaseModel):
     model_id: str
     model_path: str
     loaded: bool
+    size_vram: Optional[int] = None  # VRAM usage in bytes
+
+
+class GPUStats(BaseModel):
+    """GPU memory statistics."""
+    total_vram: int  # Total VRAM in bytes
+    used_vram: int   # Used VRAM in bytes
+    free_vram: int   # Free VRAM in bytes
+
+
+def get_gpu_stats() -> Optional[GPUStats]:
+    """Get GPU memory statistics if available."""
+    try:
+        import torch
+        if torch.cuda.is_available():
+            device = torch.device("cuda:0")
+            total = torch.cuda.get_device_properties(device).total_memory
+            reserved = torch.cuda.memory_reserved(device)
+            allocated = torch.cuda.memory_allocated(device)
+            free = total - reserved
+            return GPUStats(
+                total_vram=total,
+                used_vram=allocated,
+                free_vram=free
+            )
+    except Exception as e:
+        logger.warning(f"Failed to get GPU stats: {e}")
+    return None
 
 
 class EngineState:
@@ -162,6 +190,8 @@ async def generate_stream(request: GenerateRequest, engine: EngineState):
 @app.get("/models")
 async def list_models():
     engine: EngineState = app.state.engine
+    gpu_stats = get_gpu_stats()
+
     return {
         "models": [
             ModelInfo(
@@ -170,7 +200,8 @@ async def list_models():
                 loaded=True,
             )
             for model_id, config in engine.model_configs.items()
-        ]
+        ],
+        "gpu_stats": gpu_stats.dict() if gpu_stats else None,
     }
 
 
