@@ -86,7 +86,7 @@ enum Commands {
     #[command(about = "Show system hardware information")]
     Info,
 
-    #[command(about = "Benchmark MAX Engine vs Ollama")]
+    #[command(about = "Benchmark inference engine performance (experimental)")]
     Bench {
         #[arg(help = "Model name")]
         model: String,

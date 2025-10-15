@@ -19,22 +19,22 @@ pub async fn execute(model: String, prompt: String, iterations: usize) -> Result
     println!("RAM: {} MB", hw.ram_total_mb);
     println!();
 
-    println!("Testing MAX Engine...");
+    println!("Testing vLLama (via inference engine)...");
     match test_max_engine(&model, &prompt, iterations).await {
         Ok(stats) => {
-            println!("✓ MAX Engine Results:");
+            println!("✓ vLLama Results:");
             println!("  Average latency: {:.2}ms", stats.avg_latency_ms);
             println!("  Tokens/sec: {:.2}", stats.tokens_per_sec);
             println!("  Total time: {:.2}s", stats.total_time_secs);
         }
         Err(e) => {
-            warn!("✗ MAX Engine test failed: {}", e);
-            println!("✗ MAX Engine: {}", e);
+            warn!("✗ vLLama test failed: {}", e);
+            println!("✗ vLLama: {}", e);
         }
     }
 
     println!();
-    println!("Testing Ollama...");
+    println!("Testing Ollama (for comparison)...");
     match test_ollama(&model, &prompt, iterations).await {
         Ok(stats) => {
             println!("✓ Ollama Results:");
@@ -44,7 +44,7 @@ pub async fn execute(model: String, prompt: String, iterations: usize) -> Result
         }
         Err(e) => {
             warn!("✗ Ollama test failed: {}", e);
-            println!("✗ Ollama: {}", e);
+            println!("✗ Ollama: Not installed or unavailable");
         }
     }
 
@@ -62,10 +62,10 @@ async fn test_max_engine(model: &str, prompt: &str, iterations: usize) -> Result
     let mut max_engine = MaxEngine::new()?;
 
     if !max_engine.health_check().await? {
-        anyhow::bail!("MAX Engine service not available (is the Python service running?)");
+        anyhow::bail!("Inference service not available (is the Python vLLM service running on port 8100?)");
     }
 
-    info!("Loading model via MAX Engine");
+    info!("Loading model via inference engine");
     let model_path = PathBuf::from(model);
     let handle = max_engine.load_model(&model_path).await?;
 
