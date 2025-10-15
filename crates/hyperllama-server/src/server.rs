@@ -30,6 +30,7 @@ impl Server {
         let app = Router::new()
             .route("/api/generate", post(api::generate))
             .route("/api/chat", post(api::chat))
+            .route("/api/pull", post(api::pull))
             .route("/api/show", post(api::show))
             .route("/api/tags", get(api::tags))
             .route("/health", get(api::health))

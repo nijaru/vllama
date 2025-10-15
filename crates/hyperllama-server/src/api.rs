@@ -108,6 +108,25 @@ pub struct ModelDetails {
     pub quantization_level: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct PullApiRequest {
+    #[serde(alias = "name")]
+    pub model: String,
+    #[serde(default = "default_stream")]
+    pub stream: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PullApiResponse {
+    pub status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub digest: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub completed: Option<u64>,
+}
+
 pub async fn generate(
     State(state): State<ServerState>,
     Json(req): Json<GenerateApiRequest>,
@@ -275,6 +294,111 @@ pub async fn tags(State(state): State<ServerState>) -> Json<TagsResponse> {
 
 pub async fn health() -> &'static str {
     "OK"
+}
+
+pub async fn pull(
+    State(state): State<ServerState>,
+    Json(req): Json<PullApiRequest>,
+) -> Response {
+    info!("Pull request for model: {}", req.model);
+
+    if state.loaded_models.contains_key(&req.model) {
+        return Json(PullApiResponse {
+            status: "success".to_string(),
+            digest: None,
+            total: None,
+            completed: None,
+        }).into_response();
+    }
+
+    let model_path = PathBuf::from(&req.model);
+
+    if req.stream {
+        let model_name = req.model.clone();
+        let engine_clone = state.engine.clone();
+        let loaded_models_clone = state.loaded_models.clone();
+
+        let event_stream = stream::unfold(
+            (0, false),
+            move |(step, done)| {
+                let model = model_name.clone();
+                let path = model_path.clone();
+                let eng = engine_clone.clone();
+                let loaded = loaded_models_clone.clone();
+
+                async move {
+                    if done {
+                        return None;
+                    }
+
+                    match step {
+                        0 => {
+                            let event = PullApiResponse {
+                                status: format!("pulling {}", model),
+                                digest: None,
+                                total: None,
+                                completed: None,
+                            };
+                            Some((
+                                Ok::<_, Infallible>(Event::default().data(serde_json::to_string(&event).unwrap())),
+                                (1, false)
+                            ))
+                        }
+                        1 => {
+                            let mut engine = eng.lock().await;
+                            match engine.load_model(&path).await {
+                                Ok(handle) => {
+                                    loaded.insert(model, handle);
+                                    let event = PullApiResponse {
+                                        status: "success".to_string(),
+                                        digest: None,
+                                        total: None,
+                                        completed: None,
+                                    };
+                                    Some((
+                                        Ok(Event::default().data(serde_json::to_string(&event).unwrap())),
+                                        (2, true)
+                                    ))
+                                }
+                                Err(e) => {
+                                    error!("Failed to pull model: {}", e);
+                                    let event = serde_json::json!({
+                                        "error": format!("Failed to pull model: {}", e)
+                                    });
+                                    Some((
+                                        Ok(Event::default().data(serde_json::to_string(&event).unwrap())),
+                                        (2, true)
+                                    ))
+                                }
+                            }
+                        }
+                        _ => None,
+                    }
+                }
+            }
+        );
+
+        Sse::new(event_stream).into_response()
+    } else {
+        let mut engine = state.engine.lock().await;
+        match engine.load_model(&model_path).await {
+            Ok(handle) => {
+                state.loaded_models.insert(req.model.clone(), handle);
+                Json(PullApiResponse {
+                    status: "success".to_string(),
+                    digest: None,
+                    total: None,
+                    completed: None,
+                }).into_response()
+            }
+            Err(e) => {
+                error!("Failed to pull model: {}", e);
+                (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
+                    "error": format!("Failed to pull model: {}", e)
+                }))).into_response()
+            }
+        }
+    }
 }
 
 pub async fn show(
