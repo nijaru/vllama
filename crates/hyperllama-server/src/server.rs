@@ -29,6 +29,7 @@ impl Server {
     pub async fn run(self) -> crate::Result<()> {
         let app = Router::new()
             .route("/api/generate", post(api::generate))
+            .route("/api/chat", post(api::chat))
             .route("/api/tags", get(api::tags))
             .route("/health", get(api::health))
             .layer(CorsLayer::permissive())
