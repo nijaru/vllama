@@ -21,17 +21,17 @@ impl EngineOrchestrator {
         info!("Initializing engine orchestrator");
         info!("Detected hardware: {:?}", self.hardware);
 
-        if let Ok(max_engine) = MaxEngine::new() {
-            if max_engine.supports_hardware(&self.hardware) {
-                info!("MAX Engine available and compatible");
-                self.engines.push(Arc::new(max_engine));
-            }
-        }
-
         if let Ok(vllm_engine) = VllmEngine::new() {
             if vllm_engine.supports_hardware(&self.hardware) {
                 info!("vLLM Engine available and compatible");
                 self.engines.push(Arc::new(vllm_engine));
+            }
+        }
+
+        if let Ok(max_engine) = MaxEngine::new() {
+            if max_engine.supports_hardware(&self.hardware) {
+                info!("MAX Engine available and compatible (fallback)");
+                self.engines.push(Arc::new(max_engine));
             }
         }
 

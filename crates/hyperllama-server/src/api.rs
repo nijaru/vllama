@@ -897,14 +897,14 @@ pub async fn ps(State(state): State<ServerState>) -> Response {
     info!("Process status request");
 
     let client = reqwest::Client::new();
-    let max_service_url = "http://127.0.0.1:8100";
+    let llm_service_url = "http://127.0.0.1:8100";
 
-    match client.get(format!("{}/models", max_service_url)).send().await {
+    match client.get(format!("{}/models", llm_service_url)).send().await {
         Ok(response) => {
             if !response.status().is_success() {
-                error!("MAX service returned error: {}", response.status());
+                error!("LLM service returned error: {}", response.status());
                 return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-                    "error": "Failed to get model information from MAX service"
+                    "error": "Failed to get model information from inference service"
                 }))).into_response();
             }
 
@@ -959,7 +959,7 @@ pub async fn ps(State(state): State<ServerState>) -> Response {
                     Json(PsResponse { models: processes }).into_response()
                 }
                 Err(e) => {
-                    error!("Failed to parse MAX service response: {}", e);
+                    error!("Failed to parse inference service response: {}", e);
                     (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
                         "error": format!("Failed to parse model information: {}", e)
                     }))).into_response()
@@ -967,9 +967,9 @@ pub async fn ps(State(state): State<ServerState>) -> Response {
             }
         }
         Err(e) => {
-            error!("Failed to connect to MAX service: {}", e);
+            error!("Failed to connect to inference service: {}", e);
             (StatusCode::SERVICE_UNAVAILABLE, Json(serde_json::json!({
-                "error": "MAX service unavailable. Ensure the MAX inference service is running at http://127.0.0.1:8100. Check python/max_service/server.py"
+                "error": "Inference service unavailable. Ensure the LLM service is running at http://127.0.0.1:8100. Check python/llm_service/server.py"
             }))).into_response()
         }
     }
