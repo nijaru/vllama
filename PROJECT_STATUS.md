@@ -1,19 +1,19 @@
-# HyperLlama - Project Status
+# vLLama - Project Status
 
 **Last Updated:** 2025-10-15
-**Version:** Phase 2 P0 Complete ✅
+**Version:** Phase 2 Complete ✅
 
-## What Is HyperLlama?
+## What Is vLLama?
 
-Fast LLM inference server with Ollama-compatible API, powered by Modular MAX Engine.
+Fast LLM inference server with Ollama-compatible API, powered by vLLM.
 
 **Core Value Proposition:**
 - Drop-in Ollama replacement (same API, same port)
-- 10x+ faster inference (GPU-accelerated via MAX Engine)
-- Support for MAX + vLLM backends
+- 10x+ faster inference (GPU-accelerated via vLLM)
+- High-performance inference with PagedAttention
 - Performance-focused, not feature-complete
 
-## Current Status: Phase 1 ✅
+## Current Status: Phase 2 Complete ✅
 
 ### Working Features
 
@@ -24,37 +24,39 @@ Fast LLM inference server with Ollama-compatible API, powered by Modular MAX Eng
 - ✅ `POST /api/pull` - Model downloads with progress tracking
 - ✅ `POST /api/show` - Model metadata (modelfile, parameters, details)
 - ✅ `GET /api/tags` - List loaded models
+- ✅ `GET /api/ps` - Performance monitoring
+- ✅ `POST /v1/chat/completions` - OpenAI compatibility
 
 **Infrastructure:**
 - ✅ Rust server (Axum) on port 11434
-- ✅ Python MAX Engine service on port 8100
+- ✅ Python vLLM service on port 8100
 - ✅ Auto-download models from HuggingFace on first request
 - ✅ GPU acceleration (RTX 4090 tested)
 - ✅ Model caching (loaded once, reused)
 - ✅ Proper error handling and logging
 
 **Performance (RTX 4090):**
-- Model: Llama-3.1-8B-Instruct-GGUF
-- Throughput: 59.07 tokens/sec (direct MAX Engine)
-- Latency: 846ms average
-- VRAM: 22GB for 8B model
+- Model: meta-llama/Llama-3.1-8B-Instruct
+- Throughput: High-performance inference via vLLM
+- PagedAttention for efficient memory management
+- Optimized for GPU acceleration
 
 ### Known Issues
 
 **Fixed but need verification:**
 - ⚠️ Streaming had infinite loop (fixed in code, tested working)
 
-**Misleading metrics:**
-- ⚠️ Benchmark compares direct Python calls vs REST API (not vs real Ollama)
-- Need proper baseline: vLLM or actual Ollama on same hardware
+**Needs proper benchmarking:**
+- ⚠️ Need proper baseline comparison vs Ollama on same hardware
+- Document vLLM performance characteristics
 
-**Phase 2 P0 - Complete!**
-All core model management endpoints implemented.
-
-**Remaining features (P1/P2):**
-- ⏸️ OpenAI `/v1/chat/completions` compatibility (P1)
-- ⏸️ Performance monitoring `/api/ps` (P1)
-- ⏸️ Better prompt templates for chat (improvement)
+**Phase 2 Complete!**
+All core API endpoints and features implemented:
+- ✅ Chat completions with proper templating
+- ✅ Model management (pull, show, tags)
+- ✅ OpenAI compatibility
+- ✅ Performance monitoring
+- ✅ Streaming support for all endpoints
 
 ## Phase 2 Roadmap - Core UX Features
 
@@ -103,14 +105,14 @@ All core model management endpoints implemented.
 9. **Multi-model Loading** - Run multiple models
 10. **Model Unloading** - Free VRAM when not in use
 
-## Phase 3 - vLLM Backend
+## Phase 3 - Future Enhancements
 
-**Goal: Performance comparison MAX vs vLLM**
+**Goal: Production-ready features**
 
-1. Python vLLM service (same pattern as MAX service)
-2. Automatic backend selection based on model
-3. Side-by-side benchmarks
-4. Documentation on when to use which
+1. ✅ vLLM backend integration (Complete)
+2. Performance benchmarking vs Ollama
+3. Request batching and optimization
+4. Multi-GPU support
 
 ## Not Planned (Out of Scope)
 
@@ -128,14 +130,14 @@ All core model management endpoints implemented.
 
 **Current:**
 - Rust 1.90.0 (Axum web framework)
-- Python 3.12.11 (via mise + uv)
-- MAX Engine 25.5.0 (nightly)
+- Python 3.12+ (via mise + uv)
+- vLLM (latest stable)
 - Tokio async runtime
 
 **Future:**
-- vLLM (TBD version)
 - Optional: Prometheus metrics
 - Optional: Redis for caching
+- Multi-GPU support
 
 ## Development Setup
 
@@ -144,17 +146,17 @@ All core model management endpoints implemented.
 # 1. Ensure gdm stopped (for full 24GB VRAM)
 sudo systemctl stop gdm
 
-# 2. Start MAX Engine service
-cd python && uv run uvicorn max_service.server:app --host 127.0.0.1 --port 8100
+# 2. Start vLLM service
+cd python && uv run uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
 
-# 3. Start HyperLlama server
-cargo run --release --bin hyperllama -- serve --host 127.0.0.1 --port 11434
+# 3. Start vLLama server
+cargo run --release --bin vllama -- serve --host 127.0.0.1 --port 11434
 
 # 4. Test
 curl http://localhost:11434/health
 curl -X POST http://localhost:11434/api/generate \
   -H "Content-Type: application/json" \
-  -d '{"model":"modularai/Llama-3.1-8B-Instruct-GGUF","prompt":"Hello!","stream":false}'
+  -d '{"model":"meta-llama/Llama-3.1-8B-Instruct","prompt":"Hello!","stream":false}'
 ```
 
 **macOS (Development):**
@@ -163,27 +165,26 @@ Same commands work on M3 Max (CPU inference).
 ## Project Structure
 
 ```
-hyperllama/
+vllama/
 ├── crates/
-│   ├── hyperllama-core/      # Shared types
-│   ├── hyperllama-engine/    # MAX Engine integration
-│   ├── hyperllama-server/    # REST API server
-│   ├── hyperllama-cli/       # CLI + benchmarks
-│   └── hyperllama-models/    # Model definitions (unused)
+│   ├── vllama-core/          # Shared types and utilities
+│   ├── vllama-engine/        # Engine abstraction (vLLM, llama.cpp)
+│   ├── vllama-server/        # REST API server
+│   ├── vllama-cli/           # CLI + benchmarks
+│   └── vllama-models/        # Model definitions
 ├── python/
-│   ├── max_service/          # MAX Engine HTTP wrapper
+│   ├── llm_service/          # vLLM HTTP wrapper
 │   └── requirements.txt
-├── docs/                     # Planning docs (mostly stale)
-├── external/modular/         # Modular source for reference
+├── docs/                     # Planning docs
 └── PROJECT_STATUS.md         # This file (source of truth)
 ```
 
 ## Key Files
 
 **Code:**
-- `crates/hyperllama-server/src/api.rs` - API endpoints
-- `crates/hyperllama-engine/src/max.rs` - MAX Engine client
-- `python/max_service/server.py` - MAX Engine service
+- `crates/vllama-server/src/api.rs` - API endpoints
+- `crates/vllama-engine/src/vllm.rs` - vLLM client
+- `python/llm_service/server.py` - vLLM service
 
 **Config:**
 - `Cargo.toml` - Rust dependencies
@@ -203,38 +204,30 @@ hyperllama/
 - [x] Streaming generation working
 - [x] Auto model loading
 
-**Phase 2 Goals (P0):**
+**Phase 2 Goals:**
 - [x] Chat completions working
 - [x] Model pull from HuggingFace
 - [x] Model metadata (show, tags)
-- [x] 50+ tok/s on RTX 4090 (8B model)
-
-**Phase 2 Goals (P1):**
-- [ ] OpenAI API compatibility
-- [ ] Performance monitoring
+- [x] OpenAI API compatibility
+- [x] Performance monitoring
+- [x] Error messages with actionable suggestions
+- [x] Llama 3.1 chat templates
 
 **Phase 3 Goals:**
-- [ ] vLLM backend integrated
-- [ ] Performance comparison documented
-- [ ] Clear docs on MAX vs vLLM tradeoffs
+- [x] vLLM backend integrated
+- [ ] Performance comparison vs Ollama documented
+- [ ] Multi-GPU support
 
-## Getting Help
+## Next Steps
 
-**Issues to fix:**
-- Benchmark comparing wrong things (see bench.rs)
-- Docs scattered across 12+ files
-- No clear project vision until now
+**Phase 3 Priorities:**
+1. Proper performance benchmarking vs Ollama
+2. Request batching and optimization
+3. Multi-GPU support (vLLM tensor parallelism)
+4. Production deployment guide
 
-**Questions for user:**
-- Which HuggingFace repos to support? (modularai/* only? or any?)
-- Should we auto-quantize models, or require pre-quantized?
-- Default to streaming or non-streaming?
-
-## Next Session
-
-**Immediate priorities:**
-1. ✅ Implement `/api/chat` endpoint - DONE
-2. Fix `/api/tags` to show loaded models
-3. Add `/api/pull` with progress tracking
-4. Add `/api/show` for model metadata
-5. Improve chat prompt formatting (use Llama 3.1 chat template)
+**Potential Improvements:**
+- Model unloading to free VRAM
+- Connection pooling for better concurrency
+- Prometheus metrics export
+- Docker deployment
