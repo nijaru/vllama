@@ -17,7 +17,7 @@ Drop-in replacement for Ollama with 10x+ faster GPU inference.
 - NVIDIA GPU (CUDA 13.0+) or CPU
 - Rust 1.90+
 - Python 3.12+
-- MAX Engine installed
+- vLLM installed
 
 **Start the server:**
 
