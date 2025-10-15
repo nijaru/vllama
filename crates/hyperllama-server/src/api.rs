@@ -5,7 +5,7 @@ use axum::{
     Json,
 };
 use futures::stream::{self, Stream};
-use hyperllama_core::{ChatMessage, ChatRequest, GenerateRequest, GenerateOptions};
+use hyperllama_core::{ChatMessage, ChatRequest, ChatTemplate, GenerateRequest, GenerateOptions};
 use hyperllama_engine::InferenceEngine;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
@@ -554,16 +554,11 @@ pub async fn openai_chat_completions(
         }
     };
 
-    let prompt = req.messages
-        .iter()
-        .map(|msg| match msg.role {
-            hyperllama_core::ChatRole::System => format!("System: {}", msg.content),
-            hyperllama_core::ChatRole::User => format!("User: {}", msg.content),
-            hyperllama_core::ChatRole::Assistant => format!("Assistant: {}", msg.content),
-            hyperllama_core::ChatRole::Tool => format!("Tool: {}", msg.content),
-        })
-        .collect::<Vec<_>>()
-        .join("\n\n");
+    let prompt = if req.model.to_lowercase().contains("llama") {
+        hyperllama_core::Llama3Template.apply(&req.messages)
+    } else {
+        hyperllama_core::SimpleChatTemplate.apply(&req.messages)
+    };
 
     let mut gen_req = GenerateRequest::new(
         handle.0,
@@ -737,16 +732,11 @@ pub async fn chat(
         }
     };
 
-    let prompt = req.messages
-        .iter()
-        .map(|msg| match msg.role {
-            hyperllama_core::ChatRole::System => format!("System: {}", msg.content),
-            hyperllama_core::ChatRole::User => format!("User: {}", msg.content),
-            hyperllama_core::ChatRole::Assistant => format!("Assistant: {}", msg.content),
-            hyperllama_core::ChatRole::Tool => format!("Tool: {}", msg.content),
-        })
-        .collect::<Vec<_>>()
-        .join("\n\n");
+    let prompt = if req.model.to_lowercase().contains("llama") {
+        hyperllama_core::Llama3Template.apply(&req.messages)
+    } else {
+        hyperllama_core::SimpleChatTemplate.apply(&req.messages)
+    };
 
     let mut gen_req = GenerateRequest::new(
         handle.0,
