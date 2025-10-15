@@ -19,3 +19,4 @@ async-stream = { workspace = true }
 dashmap = { workspace = true }
 parking_lot = { workspace = true }
 sysinfo = { workspace = true }
+reqwest = { workspace = true }

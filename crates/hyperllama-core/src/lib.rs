@@ -5,7 +5,9 @@ pub mod model;
 pub mod hardware;
 pub mod error;
 pub mod templates;
+pub mod downloader;
 
+pub use downloader::{DownloadProgress, ModelDownloader};
 pub use error::{Error, Result};
 pub use hardware::{Hardware, HardwareType, GpuInfo};
 pub use model::{ModelHandle, ModelInfo, ModelFormat};

@@ -372,68 +372,70 @@ pub async fn pull(
         }).into_response();
     }
 
-    let model_path = PathBuf::from(&req.model);
+    use hyperllama_core::{ModelDownloader, DownloadProgress};
+    use tokio::sync::mpsc;
+
+    let downloader = match ModelDownloader::new() {
+        Ok(d) => d,
+        Err(e) => {
+            error!("Failed to create downloader: {}", e);
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
+                "error": format!("Failed to initialize downloader: {}", e)
+            }))).into_response();
+        }
+    };
 
     if req.stream {
         let model_name = req.model.clone();
         let engine_clone = state.engine.clone();
         let loaded_models_clone = state.loaded_models.clone();
 
+        let (tx, mut rx) = mpsc::channel::<DownloadProgress>(100);
+
+        tokio::spawn(async move {
+            let result = downloader.download_model(
+                &model_name,
+                None,
+                |progress| {
+                    let _ = tx.try_send(progress);
+                }
+            ).await;
+
+            if let Ok(model_path) = result {
+                let mut engine = engine_clone.lock().await;
+                if let Ok(handle) = engine.load_model(&model_path).await {
+                    loaded_models_clone.insert(model_name, handle);
+                }
+            }
+        });
+
         let event_stream = stream::unfold(
-            (0, false),
-            move |(step, done)| {
-                let model = model_name.clone();
-                let path = model_path.clone();
-                let eng = engine_clone.clone();
-                let loaded = loaded_models_clone.clone();
-
-                async move {
-                    if done {
-                        return None;
+            rx,
+            |mut receiver| async move {
+                match receiver.recv().await {
+                    Some(progress) => {
+                        let event = PullApiResponse {
+                            status: progress.status.clone(),
+                            digest: None,
+                            total: if progress.total > 0 { Some(progress.total) } else { None },
+                            completed: if progress.downloaded > 0 { Some(progress.downloaded) } else { None },
+                        };
+                        Some((
+                            Ok::<_, Infallible>(Event::default().data(serde_json::to_string(&event).unwrap())),
+                            receiver
+                        ))
                     }
-
-                    match step {
-                        0 => {
-                            let event = PullApiResponse {
-                                status: format!("pulling {}", model),
-                                digest: None,
-                                total: None,
-                                completed: None,
-                            };
-                            Some((
-                                Ok::<_, Infallible>(Event::default().data(serde_json::to_string(&event).unwrap())),
-                                (1, false)
-                            ))
-                        }
-                        1 => {
-                            let mut engine = eng.lock().await;
-                            match engine.load_model(&path).await {
-                                Ok(handle) => {
-                                    loaded.insert(model, handle);
-                                    let event = PullApiResponse {
-                                        status: "success".to_string(),
-                                        digest: None,
-                                        total: None,
-                                        completed: None,
-                                    };
-                                    Some((
-                                        Ok(Event::default().data(serde_json::to_string(&event).unwrap())),
-                                        (2, true)
-                                    ))
-                                }
-                                Err(e) => {
-                                    error!("Failed to pull model: {}", e);
-                                    let event = serde_json::json!({
-                                        "error": format!("Failed to pull model: {}", e)
-                                    });
-                                    Some((
-                                        Ok(Event::default().data(serde_json::to_string(&event).unwrap())),
-                                        (2, true)
-                                    ))
-                                }
-                            }
-                        }
-                        _ => None,
+                    None => {
+                        let final_event = PullApiResponse {
+                            status: "success".to_string(),
+                            digest: None,
+                            total: None,
+                            completed: None,
+                        };
+                        Some((
+                            Ok(Event::default().data(serde_json::to_string(&final_event).unwrap())),
+                            receiver
+                        ))
                     }
                 }
             }
@@ -441,21 +443,31 @@ pub async fn pull(
 
         Sse::new(event_stream).into_response()
     } else {
-        let mut engine = state.engine.lock().await;
-        match engine.load_model(&model_path).await {
-            Ok(handle) => {
-                state.loaded_models.insert(req.model.clone(), handle);
-                Json(PullApiResponse {
-                    status: "success".to_string(),
-                    digest: None,
-                    total: None,
-                    completed: None,
-                }).into_response()
+        match downloader.download_model(&req.model, None, |_| {}).await {
+            Ok(model_path) => {
+                let mut engine = state.engine.lock().await;
+                match engine.load_model(&model_path).await {
+                    Ok(handle) => {
+                        state.loaded_models.insert(req.model.clone(), handle);
+                        Json(PullApiResponse {
+                            status: "success".to_string(),
+                            digest: None,
+                            total: None,
+                            completed: None,
+                        }).into_response()
+                    }
+                    Err(e) => {
+                        error!("Failed to load model: {}", e);
+                        (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
+                            "error": format!("Failed to load model: {}", e)
+                        }))).into_response()
+                    }
+                }
             }
             Err(e) => {
-                error!("Failed to pull model: {}", e);
+                error!("Failed to download model: {}", e);
                 (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-                    "error": format!("Failed to pull model: {}", e)
+                    "error": format!("Failed to download model: {}", e)
                 }))).into_response()
             }
         }
