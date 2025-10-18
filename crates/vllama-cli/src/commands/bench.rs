@@ -19,12 +19,21 @@ pub async fn execute(model: String, prompt: String, iterations: usize) -> Result
     println!("RAM: {} MB", hw.ram_total_mb);
     println!();
 
+    println!("⚠️  Benchmark Caveats:");
+    println!("  - vLLama: Direct engine access (minimal overhead)");
+    println!("  - Ollama: HTTP API on port 11435 (not default 11434)");
+    println!("  - Token counts estimated at 50 per response");
+    println!("  - Run Ollama on port 11435: OLLAMA_HOST=127.0.0.1:11435 ollama serve");
+    println!();
+
     println!("Testing vLLama (via inference engine)...");
     match test_max_engine(&model, &prompt, iterations).await {
         Ok(stats) => {
             println!("✓ vLLama Results:");
+            println!("  Median latency: {:.2}ms", stats.median_latency_ms);
             println!("  Average latency: {:.2}ms", stats.avg_latency_ms);
-            println!("  Tokens/sec: {:.2}", stats.tokens_per_sec);
+            println!("  P99 latency: {:.2}ms", stats.p99_latency_ms);
+            println!("  Tokens/sec: {:.2} (estimated)", stats.tokens_per_sec);
             println!("  Total time: {:.2}s", stats.total_time_secs);
         }
         Err(e) => {
@@ -38,13 +47,15 @@ pub async fn execute(model: String, prompt: String, iterations: usize) -> Result
     match test_ollama(&model, &prompt, iterations).await {
         Ok(stats) => {
             println!("✓ Ollama Results:");
+            println!("  Median latency: {:.2}ms", stats.median_latency_ms);
             println!("  Average latency: {:.2}ms", stats.avg_latency_ms);
-            println!("  Tokens/sec: {:.2}", stats.tokens_per_sec);
+            println!("  P99 latency: {:.2}ms", stats.p99_latency_ms);
+            println!("  Tokens/sec: {:.2} (estimated)", stats.tokens_per_sec);
             println!("  Total time: {:.2}s", stats.total_time_secs);
         }
         Err(e) => {
             warn!("✗ Ollama test failed: {}", e);
-            println!("✗ Ollama: Not installed or unavailable");
+            println!("✗ Ollama: Not available (run on port 11435)");
         }
     }
 
@@ -53,9 +64,16 @@ pub async fn execute(model: String, prompt: String, iterations: usize) -> Result
 
 #[derive(Debug)]
 struct BenchStats {
+    median_latency_ms: f64,
     avg_latency_ms: f64,
+    p99_latency_ms: f64,
     tokens_per_sec: f64,
     total_time_secs: f64,
+}
+
+fn calculate_percentile(sorted_values: &[f64], percentile: f64) -> f64 {
+    let index = (percentile / 100.0 * (sorted_values.len() - 1) as f64).round() as usize;
+    sorted_values[index]
 }
 
 async fn test_max_engine(model: &str, prompt: &str, iterations: usize) -> Result<BenchStats> {
@@ -89,11 +107,18 @@ async fn test_max_engine(model: &str, prompt: &str, iterations: usize) -> Result
 
     let total_duration = start.elapsed();
 
+    let mut sorted_latencies = latencies.clone();
+    sorted_latencies.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+    let median_latency = calculate_percentile(&sorted_latencies, 50.0);
+    let p99_latency = calculate_percentile(&sorted_latencies, 99.0);
     let avg_latency = latencies.iter().sum::<f64>() / latencies.len() as f64;
     let tokens_per_sec = (iterations * 50) as f64 / total_duration.as_secs_f64();
 
     Ok(BenchStats {
+        median_latency_ms: median_latency,
         avg_latency_ms: avg_latency,
+        p99_latency_ms: p99_latency,
         tokens_per_sec,
         total_time_secs: total_duration.as_secs_f64(),
     })
@@ -121,7 +146,7 @@ async fn test_ollama(model: &str, prompt: &str, iterations: usize) -> Result<Ben
 
         let iter_start = Instant::now();
         let response = client
-            .post("http://localhost:11434/api/generate")
+            .post("http://localhost:11435/api/generate")
             .json(&request)
             .send()
             .await?;
@@ -138,11 +163,18 @@ async fn test_ollama(model: &str, prompt: &str, iterations: usize) -> Result<Ben
 
     let total_duration = start.elapsed();
 
+    let mut sorted_latencies = latencies.clone();
+    sorted_latencies.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+    let median_latency = calculate_percentile(&sorted_latencies, 50.0);
+    let p99_latency = calculate_percentile(&sorted_latencies, 99.0);
     let avg_latency = latencies.iter().sum::<f64>() / latencies.len() as f64;
     let tokens_per_sec = (iterations * 50) as f64 / total_duration.as_secs_f64();
 
     Ok(BenchStats {
+        median_latency_ms: median_latency,
         avg_latency_ms: avg_latency,
+        p99_latency_ms: p99_latency,
         tokens_per_sec,
         total_time_secs: total_duration.as_secs_f64(),
     })

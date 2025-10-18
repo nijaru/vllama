@@ -55,12 +55,12 @@ curl -X POST http://localhost:11434/api/generate \
 
 **RTX 4090 (Llama-3.1-8B-Instruct):**
 - Throughput: High-performance inference via vLLM
-- Optimized for GPU acceleration
+- Optimized for GPU acceleration with PagedAttention
 - Efficient memory management
 
-**vs CPU baseline:**
-- M3 Max CPU: ~6-8 tokens/sec
-- Speedup: ~8-10x on GPU
+**Benchmarking:**
+Use `vllama bench` to compare vLLama vs Ollama on your hardware.
+See benchmark section below for setup instructions.
 
 ## Supported APIs
 
@@ -135,8 +135,11 @@ cargo test
 
 **Benchmark:**
 ```bash
-# Note: Current benchmark is misleading (compares Python direct vs REST API)
-# Proper vLLM/Ollama comparison coming in Phase 2
+# Compare vLLama vs Ollama (Ollama must run on port 11435)
+# Terminal 1: Start Ollama on alternate port
+OLLAMA_HOST=127.0.0.1:11435 ollama serve
+
+# Terminal 2: Run benchmark
 cargo run --release --bin vllama -- bench \
   "meta-llama/Llama-3.1-8B-Instruct" \
   "Test prompt" \
