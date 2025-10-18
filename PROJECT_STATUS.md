@@ -223,10 +223,10 @@ vllama/
 
 **Phase 3 Priorities:**
 1. ✅ ~~Proper performance benchmarking vs Ollama~~ (tool complete, see BENCHMARKS.md)
-2. Run benchmarks on real hardware and document results
-3. Request batching and optimization
-4. Multi-GPU support (vLLM tensor parallelism)
-5. Production deployment guide
+2. ✅ ~~Production deployment guide~~ (complete, see DEPLOYMENT.md)
+3. Run benchmarks on real hardware and document results
+4. Request batching and optimization
+5. Multi-GPU support (vLLM tensor parallelism)
 
 **Potential Improvements:**
 - Model unloading to free VRAM
