@@ -9,15 +9,18 @@ Thin wrapper around vLLM's Python API.
 ### Installation
 
 ```bash
-# Install Python dependencies
-uv pip install -r requirements.txt
+# Install dependencies with uv
+uv sync
+
+# Install vLLM (optional dependency, requires CUDA for GPU support)
+uv pip install vllm
 ```
 
 ### Running
 
 ```bash
 # Start the service
-uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
+uv run uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
 ```
 
 ### API
@@ -31,21 +34,18 @@ Thin wrapper around MAX Engine's Python API.
 ### Installation
 
 ```bash
-# Install Python dependencies
-pip install -r requirements.txt
+# Install dependencies with uv
+uv sync
 
 # Install MAX Engine (nightly)
-pip install modular --index-url https://dl.modular.com/public/nightly/python/simple/
+uv pip install modular --index-url https://dl.modular.com/public/nightly/python/simple/
 ```
 
 ### Running
 
 ```bash
 # Start the service
-python -m max_service.server
-
-# Or with uvicorn directly
-uvicorn max_service.server:app --host 127.0.0.1 --port 8100
+uv run uvicorn max_service.server:app --host 127.0.0.1 --port 8100
 ```
 
 ### API

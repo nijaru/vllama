@@ -113,10 +113,10 @@ GPU/CPU
 # 1. Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# 2. Install Python + vLLM
+# 2. Install Python dependencies
 mise install python@3.12
 mise use python@3.12
-cd python && uv pip install -r requirements.txt
+cd python && uv sync && uv pip install vllm
 
 # 3. Build vLLama
 cargo build --release
