@@ -153,6 +153,13 @@ cargo run --release --bin vllama -- bench \
 cargo fmt
 ```
 
+## Documentation
+
+- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Current phase, roadmap, and feature status
+- **[BENCHMARKS.md](BENCHMARKS.md)** - Performance testing methodology and templates
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment (systemd, Docker, security)
+- **[FEDORA_SETUP.md](FEDORA_SETUP.md)** - Fedora + NVIDIA GPU setup guide
+
 ## Project Status
 
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed roadmap and current phase.
@@ -163,12 +170,12 @@ See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed roadmap and current phas
 ## Contributing
 
 Current Phase 3 focus areas:
-1. Run benchmarks on real hardware (tool ready in [BENCHMARKS.md](BENCHMARKS.md))
+1. Run benchmarks on real hardware (see [BENCHMARKS.md](BENCHMARKS.md))
 2. Request batching and optimization
 3. Multi-GPU support (vLLM tensor parallelism)
-4. Production deployment guides
+4. Documentation and examples
 
-See PROJECT_STATUS.md for complete priority list.
+See [PROJECT_STATUS.md](PROJECT_STATUS.md) for complete priority list.
 
 ## License
 
