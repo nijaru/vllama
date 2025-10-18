@@ -60,24 +60,26 @@ curl -X POST http://localhost:11434/api/generate \
 
 **Benchmarking:**
 Use `vllama bench` to compare vLLama vs Ollama on your hardware.
-See benchmark section below for setup instructions.
+See [BENCHMARKS.md](BENCHMARKS.md) for detailed setup, methodology, and result templates.
 
 ## Supported APIs
 
-**Current (Phase 1):**
+**Ollama-Compatible:**
 - ✅ `POST /api/generate` - Text generation (streaming + non-streaming)
-- ✅ `GET /api/tags` - List models
+- ✅ `POST /api/chat` - Chat completions (streaming + non-streaming)
+- ✅ `POST /api/pull` - Download models from HuggingFace
+- ✅ `GET /api/show` - Model metadata
+- ✅ `GET /api/tags` - List loaded models
+- ✅ `GET /api/ps` - Running models and performance
 - ✅ `GET /health` - Health check
 
-**Coming Soon (Phase 2):**
-- 🔜 `POST /api/chat` - Chat completions
-- 🔜 `POST /api/pull` - Download models
-- 🔜 `GET /api/show` - Model info
-- 🔜 `POST /v1/chat/completions` - OpenAI compatibility
+**OpenAI-Compatible:**
+- ✅ `POST /v1/chat/completions` - OpenAI chat API
 
 **Out of Scope:**
 - ❌ `/api/push` - Model uploads
 - ❌ `/api/embed` - Embeddings
+- ❌ `/api/copy`, `/api/delete` - Manual model management
 - ❌ Modelfiles - Use HuggingFace models directly
 
 ## Supported Models
@@ -155,18 +157,18 @@ cargo fmt
 
 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed roadmap and current phase.
 
-**Current:** Phase 1 Complete ✅
-**Next:** Phase 2 - Chat Completions + Model Management
+**Current:** Phase 2 Complete ✅
+**Next:** Phase 3 - Performance Optimization & Production Readiness
 
 ## Contributing
 
-Focus areas:
-1. Chat completions endpoint
-2. Model download progress tracking
-3. OpenAI API compatibility
-4. Performance optimizations
+Current Phase 3 focus areas:
+1. Run benchmarks on real hardware (tool ready in [BENCHMARKS.md](BENCHMARKS.md))
+2. Request batching and optimization
+3. Multi-GPU support (vLLM tensor parallelism)
+4. Production deployment guides
 
-See PROJECT_STATUS.md for priority list.
+See PROJECT_STATUS.md for complete priority list.
 
 ## License
 
