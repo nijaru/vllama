@@ -45,7 +45,7 @@ The benchmark reports:
 - **Median latency**: 50th percentile (typical response time)
 - **Average latency**: Mean across all requests
 - **P99 latency**: 99th percentile (worst-case in 100 requests)
-- **Tokens/sec**: Estimated throughput (assumes 50 tokens per response)
+- **Tokens/sec**: Actual throughput from measured token counts
 - **Total time**: Complete test duration
 
 ### Caveats
@@ -55,7 +55,7 @@ The benchmark reports:
 - Ollama: Full HTTP API stack on port 11435
 
 ⚠️ **Limitations:**
-- Token counts are **estimated at 50 per response**, not exact
+- Both systems limited to **50 tokens per response** (max_tokens=50)
 - Comparing different levels: direct engine vs HTTP API
 - Single-threaded sequential requests (no concurrency testing)
 - No warmup runs (first request may be slower)
