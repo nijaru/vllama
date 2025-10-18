@@ -43,12 +43,12 @@ Fast LLM inference server with Ollama-compatible API, powered by vLLM.
 
 ### Known Issues
 
-**Fixed but need verification:**
-- ⚠️ Streaming had infinite loop (fixed in code, tested working)
+**None** - All Phase 2 issues resolved!
 
-**Needs proper benchmarking:**
-- ⚠️ Need proper baseline comparison vs Ollama on same hardware
-- Document vLLM performance characteristics
+**Phase 3 - Benchmarking:**
+- ✅ Honest benchmark tool implemented (see `vllama bench` and BENCHMARKS.md)
+- ⏳ Needs real-world testing on RTX 4090 vs Ollama
+- ⏳ Performance characteristics documentation pending
 
 **Phase 2 Complete!**
 All core API endpoints and features implemented:
@@ -215,16 +215,18 @@ vllama/
 
 **Phase 3 Goals:**
 - [x] vLLM backend integrated
-- [ ] Performance comparison vs Ollama documented
+- [x] Honest benchmark tool with median/P99 metrics
+- [ ] Performance comparison vs Ollama documented (tool ready, needs testing)
 - [ ] Multi-GPU support
 
 ## Next Steps
 
 **Phase 3 Priorities:**
-1. Proper performance benchmarking vs Ollama
-2. Request batching and optimization
-3. Multi-GPU support (vLLM tensor parallelism)
-4. Production deployment guide
+1. ✅ ~~Proper performance benchmarking vs Ollama~~ (tool complete, see BENCHMARKS.md)
+2. Run benchmarks on real hardware and document results
+3. Request batching and optimization
+4. Multi-GPU support (vLLM tensor parallelism)
+5. Production deployment guide
 
 **Potential Improvements:**
 - Model unloading to free VRAM
