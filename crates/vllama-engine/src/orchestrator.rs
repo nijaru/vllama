@@ -1,5 +1,5 @@
 use crate::engine::{EngineType, InferenceEngine};
-use crate::{llama_cpp::LlamaCppEngine, max::MaxEngine, vllm::VllmEngine};
+use crate::{llama_cpp::LlamaCppEngine, max::MaxEngine, vllm_openai::VllmOpenAIEngine};
 use vllama_core::{Hardware, Result};
 use std::sync::Arc;
 use tracing::{info, warn};
@@ -21,11 +21,10 @@ impl EngineOrchestrator {
         info!("Initializing engine orchestrator");
         info!("Detected hardware: {:?}", self.hardware);
 
-        if let Ok(vllm_engine) = VllmEngine::new() {
-            if vllm_engine.supports_hardware(&self.hardware) {
-                info!("vLLM Engine available and compatible");
-                self.engines.push(Arc::new(vllm_engine));
-            }
+        let vllm_engine = VllmOpenAIEngine::new("http://127.0.0.1:8100");
+        if vllm_engine.supports_hardware(&self.hardware) {
+            info!("vLLM OpenAI Engine available and compatible");
+            self.engines.push(Arc::new(vllm_engine));
         }
 
         if let Ok(max_engine) = MaxEngine::new() {

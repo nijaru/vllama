@@ -1,9 +1,8 @@
 use anyhow::Result;
 use vllama_core::{GenerateRequest, Hardware};
-use vllama_engine::{InferenceEngine, VllmEngine};
-use std::path::PathBuf;
+use vllama_engine::{InferenceEngine, VllmOpenAIEngine};
 use std::time::Instant;
-use tracing::{info, warn};
+use tracing::warn;
 
 pub async fn execute(model: String, prompt: String, iterations: usize) -> Result<()> {
     println!("vLLama Benchmark");
@@ -20,9 +19,10 @@ pub async fn execute(model: String, prompt: String, iterations: usize) -> Result
     println!();
 
     println!("⚠️  Benchmark Caveats:");
-    println!("  - vLLama: Direct engine access (minimal overhead)");
+    println!("  - vLLama: OpenAI API on port 8100");
     println!("  - Ollama: HTTP API on port 11435 (not default 11434)");
     println!("  - Both limited to 50 tokens per response");
+    println!("  - Run vLLM: python -m vllm.entrypoints.openai.api_server --model <model> --port 8100");
     println!("  - Run Ollama on port 11435: OLLAMA_HOST=127.0.0.1:11435 ollama serve");
     println!();
 
@@ -77,26 +77,18 @@ fn calculate_percentile(sorted_values: &[f64], percentile: f64) -> f64 {
 }
 
 async fn test_max_engine(model: &str, prompt: &str, iterations: usize) -> Result<BenchStats> {
-    let mut vllm_engine = VllmEngine::new()?;
+    let vllm_engine = VllmOpenAIEngine::new("http://127.0.0.1:8100");
 
     if !vllm_engine.health_check().await? {
-        anyhow::bail!("Inference service not available (is the Python vLLM service running on port 8100?)");
+        anyhow::bail!("vLLM OpenAI server not available (run: python -m vllm.entrypoints.openai.api_server --model {} --port 8100)", model);
     }
-
-    info!("Loading model via inference engine");
-    let model_path = PathBuf::from(model);
-    let handle = vllm_engine.load_model(&model_path).await?;
-
-    let model_id = vllm_engine
-        .get_model_id(handle)
-        .ok_or_else(|| anyhow::anyhow!("Model handle not found"))?;
 
     let mut latencies = Vec::new();
     let mut total_tokens = 0usize;
     let start = Instant::now();
 
     for i in 0..iterations {
-        let request = GenerateRequest::new(i as u64, model_id.clone(), prompt.to_string())
+        let request = GenerateRequest::new(i as u64, model.to_string(), prompt.to_string())
             .with_max_tokens(50);
 
         let iter_start = Instant::now();
