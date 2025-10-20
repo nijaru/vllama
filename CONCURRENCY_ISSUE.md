@@ -110,15 +110,26 @@ python -m vllm.entrypoints.openai.api_server \
 
 ## Recommendation
 
-**Phase 1:** Switch to **AsyncLLMEngine** (Option 1)
-- Provides maximum performance
-- Leverages vLLM's request batching
-- Native async support for concurrent requests
+**✅ Phase 1 COMPLETE:** Switched to **AsyncLLMEngine** (Option 1)
+- Fixed blocking sync calls (11% improvement at 5 concurrent)
+- Now competitive for low concurrency (5 requests: nearly tied with Ollama)
 
-**Phase 2:** Consider **vLLM OpenAI server** (Option 3)
-- For production deployments
-- Less maintenance burden
-- Battle-tested concurrency handling
+**⚠️ Phase 1 Limitation Discovered:**
+- At higher concurrency (10+), performance degrades significantly
+- 10 concurrent: Ollama 3.38x faster (21.7s vs 6.4s)
+- Root cause: FastAPI handler pattern doesn't leverage continuous batching
+- See BATCHING_INVESTIGATION.md for detailed analysis
+
+**📋 Phase 4 Recommendation:** Migrate to **vLLM OpenAI server** (Option 3)
+- Production-ready continuous batching
+- Official vLLM implementation
+- Better scaling at high concurrency (10+, 50+, 100+)
+- Active maintenance and updates
+
+**Current Status:**
+- Sequential: vLLama 4.4x faster ✅
+- Low concurrency (5): Nearly tied ✅
+- High concurrency (10+): Needs vLLM OpenAI server for production use
 
 ## Expected Performance After Fix
 
