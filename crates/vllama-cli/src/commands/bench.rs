@@ -1,6 +1,6 @@
 use anyhow::Result;
 use vllama_core::{GenerateRequest, Hardware};
-use vllama_engine::{InferenceEngine, MaxEngine};
+use vllama_engine::{InferenceEngine, VllmEngine};
 use std::path::PathBuf;
 use std::time::Instant;
 use tracing::{info, warn};
@@ -77,17 +77,17 @@ fn calculate_percentile(sorted_values: &[f64], percentile: f64) -> f64 {
 }
 
 async fn test_max_engine(model: &str, prompt: &str, iterations: usize) -> Result<BenchStats> {
-    let mut max_engine = MaxEngine::new()?;
+    let mut vllm_engine = VllmEngine::new()?;
 
-    if !max_engine.health_check().await? {
+    if !vllm_engine.health_check().await? {
         anyhow::bail!("Inference service not available (is the Python vLLM service running on port 8100?)");
     }
 
     info!("Loading model via inference engine");
     let model_path = PathBuf::from(model);
-    let handle = max_engine.load_model(&model_path).await?;
+    let handle = vllm_engine.load_model(&model_path).await?;
 
-    let model_id = max_engine
+    let model_id = vllm_engine
         .get_model_id(handle)
         .ok_or_else(|| anyhow::anyhow!("Model handle not found"))?;
 
@@ -100,7 +100,7 @@ async fn test_max_engine(model: &str, prompt: &str, iterations: usize) -> Result
             .with_max_tokens(50);
 
         let iter_start = Instant::now();
-        let response = max_engine.generate(request).await?;
+        let response = vllm_engine.generate(request).await?;
         let iter_duration = iter_start.elapsed();
 
         latencies.push(iter_duration.as_millis() as f64);
@@ -126,14 +126,32 @@ async fn test_max_engine(model: &str, prompt: &str, iterations: usize) -> Result
     })
 }
 
+fn translate_to_ollama_model(hf_model: &str) -> &str {
+    match hf_model {
+        "meta-llama/Llama-3.1-8B-Instruct" => "llama3.1:8b",
+        "meta-llama/Llama-3.2-3B-Instruct" => "llama3.2:3b",
+        "meta-llama/Llama-3.2-1B-Instruct" => "llama3.2:1b",
+        "Qwen/Qwen2.5-1.5B-Instruct" => "qwen2.5:1.5b",
+        "Qwen/Qwen2.5-7B-Instruct" => "qwen2.5:7b",
+        _ => hf_model,
+    }
+}
+
 async fn test_ollama(model: &str, prompt: &str, iterations: usize) -> Result<BenchStats> {
     let client = reqwest::Client::new();
+    let ollama_model = translate_to_ollama_model(model);
 
     #[derive(serde::Serialize)]
     struct OllamaRequest {
         model: String,
         prompt: String,
         stream: bool,
+        options: OllamaOptions,
+    }
+
+    #[derive(serde::Serialize)]
+    struct OllamaOptions {
+        num_predict: i32,
     }
 
     #[derive(serde::Deserialize)]
@@ -147,9 +165,12 @@ async fn test_ollama(model: &str, prompt: &str, iterations: usize) -> Result<Ben
 
     for _ in 0..iterations {
         let request = OllamaRequest {
-            model: model.to_string(),
+            model: ollama_model.to_string(),
             prompt: prompt.to_string(),
             stream: false,
+            options: OllamaOptions {
+                num_predict: 50,
+            },
         };
 
         let iter_start = Instant::now();

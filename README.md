@@ -16,14 +16,22 @@ Drop-in replacement for Ollama with 10x+ faster GPU inference.
 **Prerequisites:**
 - NVIDIA GPU (CUDA 13.0+) or CPU
 - Rust 1.90+
-- Python 3.12+
-- vLLM installed
+- Python 3.12.x (3.14+ not supported by vLLM dependencies)
+- CUDA 12.1+ (for GPU acceleration)
+
+**Install Python dependencies:**
+
+```bash
+cd python
+mise use python@3.12  # Or use your Python 3.12 installation
+uv sync --extra vllm  # Install vLLM and dependencies
+```
 
 **Start the server:**
 
 ```bash
 # Terminal 1: Start vLLM service
-cd python && uv run uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
+cd python && .venv/bin/uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
 
 # Terminal 2: Start vLLama
 cargo run --release --bin vllama -- serve --host 127.0.0.1 --port 11434
