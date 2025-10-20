@@ -30,6 +30,21 @@ enum Commands {
 
         #[arg(short, long, default_value = "11434", help = "Server port")]
         port: u16,
+
+        #[arg(long, help = "Model to load in vLLM (e.g., meta-llama/Llama-3.2-1B-Instruct)")]
+        model: Option<String>,
+
+        #[arg(long, default_value = "8100", help = "vLLM OpenAI server port")]
+        vllm_port: u16,
+
+        #[arg(long, help = "Skip auto-starting vLLM server (use existing instance)")]
+        no_vllm: bool,
+
+        #[arg(long, default_value = "256", help = "vLLM max concurrent sequences")]
+        max_num_seqs: usize,
+
+        #[arg(long, default_value = "0.9", help = "vLLM GPU memory utilization (0.0-1.0)")]
+        gpu_memory_utilization: f32,
     },
 
     #[command(about = "Run a model and chat interactively")]
@@ -106,8 +121,25 @@ async fn main() -> Result<()> {
     init_tracing(cli.verbose);
 
     match cli.command {
-        Commands::Serve { host, port } => {
-            serve::run(host, port).await?;
+        Commands::Serve {
+            host,
+            port,
+            model,
+            vllm_port,
+            no_vllm,
+            max_num_seqs,
+            gpu_memory_utilization,
+        } => {
+            serve::run(
+                host,
+                port,
+                model,
+                vllm_port,
+                no_vllm,
+                max_num_seqs,
+                gpu_memory_utilization,
+            )
+            .await?;
         }
         Commands::Run { model, prompt } => {
             run::execute(model, prompt).await?;

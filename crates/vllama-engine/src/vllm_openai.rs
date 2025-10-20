@@ -16,6 +16,7 @@ use crate::engine::{EngineCapabilities, EngineType, InferenceEngine};
 
 pub struct VllmOpenAIEngine {
     client: OpenAIClient,
+    #[allow(dead_code)]
     base_url: String,
 }
 
