@@ -396,7 +396,6 @@ pub async fn pull(
         tokio::spawn(async move {
             let result = downloader.download_model(
                 &model_name,
-                None,
                 |progress| {
                     let _ = tx.try_send(progress);
                 }
@@ -444,7 +443,7 @@ pub async fn pull(
 
         Sse::new(event_stream).into_response()
     } else {
-        match downloader.download_model(&req.model, None, |_| {}).await {
+        match downloader.download_model(&req.model, |_| {}).await {
             Ok(model_path) => {
                 let mut engine = state.engine.lock().await;
                 match engine.load_model(&model_path).await {

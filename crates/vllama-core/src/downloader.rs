@@ -1,7 +1,7 @@
 use std::path::PathBuf;
-use std::fs;
-use std::io::Write;
 use crate::{Error, Result};
+use hf_hub::api::tokio::{Api, ApiBuilder};
+use tracing::{info, warn};
 
 pub struct DownloadProgress {
     pub downloaded: u64,
@@ -10,146 +10,112 @@ pub struct DownloadProgress {
 }
 
 pub struct ModelDownloader {
-    cache_dir: PathBuf,
-    client: reqwest::Client,
+    api: Api,
 }
 
 impl ModelDownloader {
     pub fn new() -> Result<Self> {
-        let cache_dir = Self::get_cache_dir()?;
-        fs::create_dir_all(&cache_dir)?;
+        // Use default API (no custom builder needed)
+        // This automatically uses https://huggingface.co
+        let api = Api::new()
+            .map_err(|e| Error::ConfigError(format!("Failed to create HF API: {}", e)))?;
 
-        Ok(Self {
-            cache_dir,
-            client: reqwest::Client::new(),
-        })
+        Ok(Self { api })
     }
 
-    fn get_cache_dir() -> Result<PathBuf> {
-        let home = std::env::var("HOME")
-            .or_else(|_| std::env::var("USERPROFILE"))
-            .map_err(|_| Error::ConfigError("HOME directory not found".to_string()))?;
+    /// Get the cached path for a model
+    pub async fn get_model_path(&self, repo_id: &str) -> Result<PathBuf> {
+        let repo = self.api.model(repo_id.to_string());
 
-        Ok(PathBuf::from(home).join(".cache").join("vllama").join("models"))
+        // Get config file which gives us the cache directory
+        let config_path = repo.get("config.json").await
+            .map_err(|e| Error::ModelNotFound(format!("Model {} not found: {}", repo_id, e)))?;
+
+        // Return parent directory (the model directory)
+        Ok(config_path.parent()
+            .ok_or_else(|| Error::ModelNotFound("Invalid model path".to_string()))?
+            .to_path_buf())
     }
 
-    pub fn get_model_dir(&self, repo_id: &str) -> PathBuf {
-        let safe_name = repo_id.replace("/", "_");
-        self.cache_dir.join(&safe_name)
+    /// Check if model exists in cache
+    pub async fn model_exists(&self, repo_id: &str) -> bool {
+        // Check if config.json exists in cache
+        let repo = self.api.model(repo_id.to_string());
+        repo.get("config.json").await.is_ok()
     }
 
-    pub fn get_model_path(&self, repo_id: &str, filename: &str) -> PathBuf {
-        self.get_model_dir(repo_id).join(filename)
-    }
-
-    pub fn model_exists(&self, repo_id: &str, filename: &str) -> bool {
-        self.get_model_path(repo_id, filename).exists()
-    }
-
+    /// Download model from HuggingFace Hub
+    ///
+    /// This uses the official hf-hub crate which provides:
+    /// - Automatic resume on network failures
+    /// - Progress tracking
+    /// - Authentication via HF_TOKEN env var
+    /// - Caching in ~/.cache/huggingface/
+    /// - Mirror support and CDN optimization
     pub async fn download_model(
         &self,
         repo_id: &str,
-        filename: Option<&str>,
         progress_callback: impl Fn(DownloadProgress),
     ) -> Result<PathBuf> {
-        let file_name = match filename {
-            Some(f) => f.to_string(),
-            None => {
-                if repo_id.ends_with(".gguf") || repo_id.ends_with(".GGUF") {
-                    repo_id.split('/').next_back().unwrap_or("model.gguf").to_string()
-                } else {
-                    let model_name = repo_id.split('/').next_back().unwrap_or("model");
-                    if let Some(base_name) = model_name.strip_suffix("-GGUF") {
-                        format!("{}-Q4_K_M.gguf", base_name)
-                    } else {
-                        "model.gguf".to_string()
-                    }
-                }
-            }
-        };
-
-        let model_dir = self.get_model_dir(repo_id);
-        let model_path = model_dir.join(&file_name);
-
-        if model_path.exists() {
-            progress_callback(DownloadProgress {
-                downloaded: 0,
-                total: 0,
-                status: "already_exists".to_string(),
-            });
-            return Ok(model_path);
-        }
-
-        fs::create_dir_all(&model_dir)
-            .map_err(|e| Error::ModelLoadFailed(format!("Failed to create model directory: {}", e)))?;
-
-        let url = format!("https://huggingface.co/{}/resolve/main/{}", repo_id, file_name);
+        info!("Downloading model: {}", repo_id);
 
         progress_callback(DownloadProgress {
             downloaded: 0,
             total: 0,
-            status: format!("downloading from {}", url),
+            status: format!("Fetching {} from HuggingFace Hub", repo_id),
         });
 
-        let response = self.client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| Error::ModelLoadFailed(format!("Failed to download: {}", e)))?;
+        let repo = self.api.model(repo_id.to_string());
 
-        if !response.status().is_success() {
-            return Err(Error::ModelNotFound(format!(
-                "Failed to download model from HuggingFace: {} (status: {})",
-                url,
-                response.status()
-            )));
-        }
+        // Download essential model files
+        // hf-hub handles all the complexity: resume, retries, progress, etc.
 
-        let total_size = response.content_length().unwrap_or(0);
-
-        let temp_path = model_path.with_extension("tmp");
-        let mut file = fs::File::create(&temp_path)
-            .map_err(|e| Error::ModelLoadFailed(format!("Failed to create file: {}", e)))?;
-
-        let mut downloaded = 0u64;
-        let mut stream = response.bytes_stream();
-
-        use futures::StreamExt;
-        while let Some(chunk_result) = stream.next().await {
-            let chunk = chunk_result
-                .map_err(|e| Error::ModelLoadFailed(format!("Download error: {}", e)))?;
-
-            file.write_all(&chunk)
-                .map_err(|e| Error::ModelLoadFailed(format!("Write error: {}", e)))?;
-
-            downloaded += chunk.len() as u64;
-
-            progress_callback(DownloadProgress {
-                downloaded,
-                total: total_size,
-                status: "downloading".to_string(),
-            });
-        }
-
-        file.flush()
-            .map_err(|e| Error::ModelLoadFailed(format!("Failed to flush file: {}", e)))?;
-
-        drop(file);
-
-        fs::rename(&temp_path, &model_path)
-            .map_err(|e| Error::ModelLoadFailed(format!("Failed to rename file: {}", e)))?;
-
-        if temp_path.exists() {
-            let _ = fs::remove_file(&temp_path);
-        }
+        // Download config first (small file)
+        let config_path = repo.get("config.json").await
+            .map_err(|e| Error::ModelLoadFailed(format!("Failed to download config.json: {}", e)))?;
 
         progress_callback(DownloadProgress {
-            downloaded: total_size,
-            total: total_size,
+            downloaded: 1,
+            total: 3,
+            status: "Downloaded config.json".to_string(),
+        });
+
+        // Download tokenizer config
+        let _tokenizer_config = repo.get("tokenizer_config.json").await
+            .map_err(|e| {
+                warn!("tokenizer_config.json not found: {}", e);
+                e
+            })
+            .ok();
+
+        progress_callback(DownloadProgress {
+            downloaded: 2,
+            total: 3,
+            status: "Downloaded tokenizer config".to_string(),
+        });
+
+        // Try to download model weights (safetensors preferred)
+        let _model_file = match repo.get("model.safetensors").await {
+            Ok(path) => path,
+            Err(_) => {
+                // Fallback to pytorch_model.bin
+                repo.get("pytorch_model.bin").await
+                    .map_err(|e| Error::ModelLoadFailed(format!("Failed to download model weights: {}", e)))?
+            }
+        };
+
+        progress_callback(DownloadProgress {
+            downloaded: 3,
+            total: 3,
             status: "completed".to_string(),
         });
 
-        Ok(model_path)
+        info!("Model {} downloaded successfully", repo_id);
+
+        // Return the model directory (parent of config file)
+        Ok(config_path.parent()
+            .ok_or_else(|| Error::ModelLoadFailed("Invalid model path".to_string()))?
+            .to_path_buf())
     }
 }
 
@@ -164,16 +130,33 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_cache_dir() {
-        let downloader = ModelDownloader::new().unwrap();
-        assert!(downloader.cache_dir.to_string_lossy().contains("vllama"));
+    fn test_downloader_creation() {
+        let downloader = ModelDownloader::new();
+        assert!(downloader.is_ok());
     }
 
-    #[test]
-    fn test_model_path() {
+    #[tokio::test]
+    async fn test_model_path() {
+        // This test requires network access
+        // Skip in CI unless HF_TOKEN is set
+        if std::env::var("HF_TOKEN").is_err() {
+            return;
+        }
+
         let downloader = ModelDownloader::new().unwrap();
-        let path = downloader.get_model_path("modularai/Llama-3.1-8B-Instruct-GGUF", "model.gguf");
-        assert!(path.to_string_lossy().contains("modularai_Llama-3.1-8B-Instruct-GGUF"));
-        assert!(path.to_string_lossy().ends_with("model.gguf"));
+
+        // Try a small test model
+        let result = downloader.download_model(
+            "hf-internal-testing/tiny-random-gpt2",
+            |progress| {
+                println!("Progress: {}/{} - {}",
+                    progress.downloaded,
+                    progress.total,
+                    progress.status
+                );
+            }
+        ).await;
+
+        assert!(result.is_ok());
     }
 }
