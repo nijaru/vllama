@@ -15,8 +15,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 try:
-    from vllm import LLM, SamplingParams
+    from vllm import SamplingParams
+    from vllm.engine.async_llm_engine import AsyncLLMEngine
     from vllm.engine.arg_utils import AsyncEngineArgs
+    from vllm.utils import random_uuid
     VLLM_AVAILABLE = True
 except ImportError:
     VLLM_AVAILABLE = False
@@ -83,7 +85,7 @@ def get_gpu_stats() -> Optional[GPUStats]:
 
 class EngineState:
     def __init__(self):
-        self.models: Dict[str, LLM] = {}
+        self.models: Dict[str, AsyncLLMEngine] = {}
         self.model_configs: Dict[str, Dict] = {}
 
 
@@ -120,12 +122,14 @@ async def load_model(request: LoadModelRequest):
     try:
         logger.info(f"Loading model: {request.model_path}")
 
-        llm = LLM(
+        engine_args = AsyncEngineArgs(
             model=request.model_path,
             max_model_len=request.max_length,
             tensor_parallel_size=1,
             gpu_memory_utilization=0.9,
         )
+
+        llm = AsyncLLMEngine.from_engine_args(engine_args)
 
         engine.models[model_id] = llm
         engine.model_configs[model_id] = {
@@ -169,17 +173,22 @@ async def generate_stream(request: GenerateRequest, engine: EngineState):
             max_tokens=max_tokens,
         )
 
-        outputs = llm.generate([request.prompt], sampling_params)
+        request_id = random_uuid()
+        results_generator = llm.generate(request.prompt, sampling_params, request_id)
 
-        full_text = outputs[0].outputs[0].text
-        words = full_text.split()
+        accumulated_text = ""
+        async for output in results_generator:
+            if output.outputs:
+                new_text = output.outputs[0].text
+                delta = new_text[len(accumulated_text):]
+                accumulated_text = new_text
 
-        for i, word in enumerate(words):
-            chunk = {
-                "text": word + " " if i < len(words) - 1 else word,
-                "done": i == len(words) - 1,
-            }
-            yield f"data: {json.dumps(chunk)}\n\n"
+                if delta:
+                    chunk = {
+                        "text": delta,
+                        "done": output.finished,
+                    }
+                    yield f"data: {json.dumps(chunk)}\n\n"
 
     except Exception as e:
         logger.error(f"Streaming generation failed: {e}")
@@ -232,12 +241,19 @@ async def generate(request: GenerateRequest):
             max_tokens=max_tokens,
         )
 
-        outputs = llm.generate([request.prompt], sampling_params)
+        request_id = random_uuid()
+        results_generator = llm.generate(request.prompt, sampling_params, request_id)
 
-        response_text = outputs[0].outputs[0].text
+        final_output = None
+        async for output in results_generator:
+            final_output = output
 
-        prompt_tokens = len(outputs[0].prompt_token_ids)
-        tokens_generated = len(outputs[0].outputs[0].token_ids)
+        if not final_output or not final_output.outputs:
+            raise HTTPException(status_code=500, detail="No output generated")
+
+        response_text = final_output.outputs[0].text
+        prompt_tokens = len(final_output.prompt_token_ids)
+        tokens_generated = len(final_output.outputs[0].token_ids)
 
         return GenerateResponse(
             text=response_text,
