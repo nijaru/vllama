@@ -127,6 +127,8 @@ async def load_model(request: LoadModelRequest):
             max_model_len=request.max_length,
             tensor_parallel_size=1,
             gpu_memory_utilization=0.9,
+            max_num_seqs=256,  # Enable batching up to 256 concurrent sequences
+            max_num_batched_tokens=8192,  # Batch up to 8K tokens
         )
 
         llm = AsyncLLMEngine.from_engine_args(engine_args)
