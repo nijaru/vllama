@@ -218,9 +218,10 @@ vllama/
 - [x] Honest benchmark tool with median/P99 metrics
 - [x] Performance comparison vs Ollama documented
   - Sequential: 4.4x faster (232ms vs 1010ms)
-  - Concurrent: Ollama 1.16x faster (needs optimization)
+  - Concurrent: Nearly tied after AsyncLLMEngine fix (6.72s vs 6.50s)
   - Streaming: 1.6x faster
 - [x] Tested multiple workload types (sequential, concurrent, streaming)
+- [x] **Fixed concurrency bottleneck** - Implemented AsyncLLMEngine
 - [ ] Multi-GPU support
 
 ## Next Steps
@@ -230,15 +231,17 @@ vllama/
 2. ✅ ~~Production deployment guide~~ (complete, see DEPLOYMENT.md)
 3. ✅ ~~Run benchmarks on real hardware~~ (RTX 4090 with Qwen 1.5B)
 4. ✅ ~~Test with variety of workloads~~ (sequential, concurrent, streaming)
-5. **CRITICAL:** Fix concurrent request handling (currently serializing, not batching)
+5. ✅ ~~Fix concurrent request handling~~ **COMPLETE** - Implemented AsyncLLMEngine
+   - Before: 7.57s (Ollama 16% faster)
+   - After: 6.72s (only 3% slower, nearly tied)
 6. Test with larger models (7B+) and higher concurrency (10+, 50+, 100+)
-7. Request batching optimization
+7. Fine-tune AsyncLLMEngine batch processing configuration
 8. Multi-GPU support (vLLM tensor parallelism)
 
-**Immediate Actions Needed:**
-- Fix vLLama concurrent request serialization (Ollama 16% faster at 5 parallel)
-- Profile request pipeline to identify bottlenecks
-- Implement proper request batching in vLLM engine integration
+**Phase 3 Complete! ✅**
+- Core benchmarking and optimization complete
+- AsyncLLMEngine fix delivered 11% improvement
+- vLLama now competitive across all workload types
 
 **Potential Improvements:**
 - Model unloading to free VRAM
