@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use crate::{Error, Result};
-use hf_hub::api::tokio::{Api, ApiBuilder};
+use hf_hub::api::tokio::Api;
 use tracing::{info, warn};
 
 pub struct DownloadProgress {
