@@ -180,6 +180,34 @@ vllama serve --port 11434
 - Clean shutdown
 - Better UX
 
+### Phase 4C: Remove Custom Chat Templates (Medium Priority)
+
+**Remove:**
+- `crates/vllama-core/src/templates.rs` (123 lines)
+- Manual Llama3Template and SimpleChatTemplate
+
+**Replace with:**
+```rust
+// In chat API handler
+let openai_req = OpenAIChatRequest {
+    model: request.model,
+    messages: request.messages,  // Pass directly to vLLM
+    // vLLM applies correct template automatically
+};
+```
+
+**How vLLM handles it:**
+- Reads `tokenizer_config.json` from HuggingFace model
+- Automatically applies correct chat template
+- Supports ALL HuggingFace models (thousands)
+- Handles special tokens, EOS, etc. correctly
+
+**Benefits:**
+- **Less code:** 123 lines → 0 lines
+- **Better coverage:** 2 models → all models
+- **Always correct:** Uses official model templates
+- **No maintenance:** HuggingFace updates, we get for free
+
 ### Phase 4D: Additional Optimizations (Low Priority)
 
 1. **Streaming optimization:**
@@ -194,29 +222,28 @@ vllama serve --port 11434
    - vLLM supports safetensors, GGUF (via llama.cpp), AWQ, GPTQ
    - Just pass through to vLLM server
 
-4. **Chat templates:**
-   - Let vLLM handle template application
-   - Supports all HuggingFace models automatically
-
 ## Implementation Order
 
-**Week 1:**
+**Week 1: Core Architecture**
 1. ✅ Document optimization plan (this file)
-2. Implement OpenAI API client in Rust
-3. Replace VllmEngine to call OpenAI endpoints
-4. Test with vLLM server running separately
+2. Add `hf-hub` dependency
+3. Replace custom downloader (180 lines → ~20 lines)
+4. Implement OpenAI API client in Rust
+5. Replace VllmEngine to call OpenAI endpoints
+6. Test with vLLM server running separately
 
-**Week 2:**
-5. Implement process management (auto-start vLLM server)
-6. Implement HuggingFace model downloading
-7. Update serve command to handle both processes
-8. Test concurrent performance (target: 2-3x faster at 10 concurrent)
+**Week 2: Integration & Cleanup**
+7. Implement process management (auto-start vLLM server)
+8. Remove custom chat templates (123 lines → 0 lines)
+9. Update serve command to handle both processes
+10. Test concurrent performance (target: 2-3x faster at 10 concurrent)
 
-**Week 3:**
-9. Remove Python wrapper code
-10. Update documentation
-11. Run full benchmark suite
-12. Update deployment guide
+**Week 3: Documentation & Validation**
+11. Remove Python wrapper code (270 lines → 0 lines)
+12. Update all documentation
+13. Run full benchmark suite
+14. Update deployment guide
+15. **Total code reduction: ~573 lines removed**
 
 ## Expected Performance After Optimization
 
@@ -273,15 +300,24 @@ vllama serve --port 11434
 ## Success Metrics
 
 **Before optimization:**
-- 10 concurrent requests: 21.7s (Ollama 3.38x faster)
-- Python wrapper: 270 lines to maintain
+- 10 concurrent requests: 21.7s (Ollama 3.38x faster) ❌
+- Custom code: 573 lines (Python wrapper + downloader + templates)
 - Startup: 2 commands
+- Model downloads: Not implemented
+- Chat templates: Manual, only 2 models
 
 **After optimization:**
-- 10 concurrent requests: <7s (vLLama 2-3x faster)
-- Python wrapper: 0 lines (removed)
+- 10 concurrent requests: <7s (vLLama 2-3x faster) ✅
+- Custom code: ~0 lines (use official implementations)
 - Startup: 1 command
-- Model downloads: Working via HuggingFace Hub
+- Model downloads: Working via official hf-hub
+- Chat templates: Automatic, all HuggingFace models
+
+**Code reduction:**
+- Python wrapper: 270 lines → 0 lines ✅
+- Model downloader: 180 lines → ~20 lines ✅
+- Chat templates: 123 lines → 0 lines ✅
+- **Total: 573 lines removed, more robust behavior**
 
 ---
 *Created: 2025-10-20*
