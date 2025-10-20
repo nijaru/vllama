@@ -216,7 +216,11 @@ vllama/
 **Phase 3 Goals:**
 - [x] vLLM backend integrated
 - [x] Honest benchmark tool with median/P99 metrics
-- [x] Performance comparison vs Ollama documented (4.4x faster on Qwen 1.5B)
+- [x] Performance comparison vs Ollama documented
+  - Sequential: 4.4x faster (232ms vs 1010ms)
+  - Concurrent: Ollama 1.16x faster (needs optimization)
+  - Streaming: 1.6x faster
+- [x] Tested multiple workload types (sequential, concurrent, streaming)
 - [ ] Multi-GPU support
 
 ## Next Steps
@@ -224,10 +228,17 @@ vllama/
 **Phase 3 Priorities:**
 1. ✅ ~~Proper performance benchmarking vs Ollama~~ (complete, see BENCHMARK_RESULTS.md)
 2. ✅ ~~Production deployment guide~~ (complete, see DEPLOYMENT.md)
-3. ✅ ~~Run benchmarks on real hardware~~ (RTX 4090: 4.4x faster than Ollama)
-4. Test with variety of models and workloads
-5. Request batching and optimization
-6. Multi-GPU support (vLLM tensor parallelism)
+3. ✅ ~~Run benchmarks on real hardware~~ (RTX 4090 with Qwen 1.5B)
+4. ✅ ~~Test with variety of workloads~~ (sequential, concurrent, streaming)
+5. **CRITICAL:** Fix concurrent request handling (currently serializing, not batching)
+6. Test with larger models (7B+) and higher concurrency (10+, 50+, 100+)
+7. Request batching optimization
+8. Multi-GPU support (vLLM tensor parallelism)
+
+**Immediate Actions Needed:**
+- Fix vLLama concurrent request serialization (Ollama 16% faster at 5 parallel)
+- Profile request pipeline to identify bottlenecks
+- Implement proper request batching in vLLM engine integration
 
 **Potential Improvements:**
 - Model unloading to free VRAM
