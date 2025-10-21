@@ -16,15 +16,23 @@ Drop-in replacement for Ollama with 10x+ faster GPU inference.
 **Prerequisites:**
 - NVIDIA GPU (CUDA 13.0+) or CPU
 - Rust 1.90+
-- Python 3.12.x (3.14+ not supported by vLLM dependencies)
+- [uv](https://docs.astral.sh/uv/) (Python environment manager)
+- Python 3.12.x (managed by uv)
 - CUDA 12.1+ (for GPU acceleration)
 
-**Install Python dependencies:**
+**Install:**
 
 ```bash
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install Python dependencies
 cd python
-mise use python@3.12  # Or use your Python 3.12 installation
-uv sync --extra vllm  # Install vLLM and dependencies
+uv sync --extra vllm  # Installs vLLM and dependencies
+
+# Build vLLama
+cd ..
+cargo build --release
 ```
 
 **Start the server:**
