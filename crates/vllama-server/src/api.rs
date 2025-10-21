@@ -641,16 +641,8 @@ pub async fn chat(
 ) -> Response {
     info!("Chat request for model: {}", req.model);
 
-    let prompt = messages_to_prompt(&req.messages);
-
-    let mut gen_req = GenerateRequest::new(
-        0,  // Request ID
-        req.model.clone(),
-        prompt,
-    );
-
+    let mut gen_opts = GenerateOptions::default();
     if let Some(opts) = req.options {
-        let mut gen_opts = GenerateOptions::default();
         if let Some(temp) = opts.temperature {
             gen_opts.sampling.temperature = temp;
         }
@@ -660,10 +652,13 @@ pub async fn chat(
         if let Some(max_tokens) = opts.max_tokens {
             gen_opts.sampling.max_tokens = Some(max_tokens);
         }
-        gen_req.options = gen_opts;
     }
 
     if req.stream {
+        // Streaming still uses prompt-based approach
+        let prompt = messages_to_prompt(&req.messages);
+        let mut gen_req = GenerateRequest::new(0, req.model.clone(), prompt);
+        gen_req.options = gen_opts;
         let engine = state.engine.lock().await;
         match engine.generate_stream(gen_req).await {
             Ok(stream) => {
@@ -722,18 +717,32 @@ pub async fn chat(
             }
         }
     } else {
+        // Non-streaming: use proper chat completion endpoint
         let start = Instant::now();
         let engine = state.engine.lock().await;
-        match engine.generate(gen_req).await {
-            Ok(resp) => {
+        match engine.generate_chat_completion(req.model.clone(), req.messages.clone(), gen_opts).await {
+            Ok(chat_response) => {
                 let duration = start.elapsed();
-                let msg = ChatMessage::assistant(resp.text);
+                let message = chat_response.choices
+                    .first()
+                    .map(|choice| choice.message.clone())
+                    .unwrap_or_else(|| vllama_core::openai::ChatMessage {
+                        role: "assistant".to_string(),
+                        content: String::new(),
+                    });
+
+                let msg = ChatMessage {
+                    role: vllama_core::ChatRole::Assistant,
+                    content: message.content,
+                    images: None,
+                };
+
                 Json(ChatApiResponse {
                     model: req.model,
                     message: msg,
                     done: true,
                     total_duration: Some(duration.as_nanos() as u64),
-                    eval_count: None,
+                    eval_count: Some(chat_response.usage.completion_tokens),
                 }).into_response()
             }
             Err(e) => {

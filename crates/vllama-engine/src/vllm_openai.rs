@@ -27,6 +27,45 @@ impl VllmOpenAIEngine {
 
         Self { client, base_url }
     }
+
+    /// Generate chat completion using OpenAI chat API
+    pub async fn generate_chat_completion(
+        &self,
+        model: String,
+        messages: Vec<vllama_core::ChatMessage>,
+        options: vllama_core::GenerateOptions,
+    ) -> Result<vllama_core::ChatCompletionResponse> {
+        use vllama_core::openai::ChatMessage as OpenAIChatMessage;
+        use vllama_core::openai::ChatCompletionRequest;
+
+        let openai_messages: Vec<OpenAIChatMessage> = messages
+            .iter()
+            .map(|msg| {
+                use vllama_core::ChatRole;
+                let role = match msg.role {
+                    ChatRole::System => "system",
+                    ChatRole::User => "user",
+                    ChatRole::Assistant => "assistant",
+                    ChatRole::Tool => "tool",
+                };
+                OpenAIChatMessage {
+                    role: role.to_string(),
+                    content: msg.content.clone(),
+                }
+            })
+            .collect();
+
+        let request = ChatCompletionRequest {
+            model: model.clone(),
+            messages: openai_messages,
+            max_tokens: options.sampling.max_tokens,
+            temperature: Some(options.sampling.temperature),
+            top_p: Some(options.sampling.top_p),
+            stream: Some(false),
+        };
+
+        self.client.create_chat_completion(request).await
+    }
 }
 
 #[async_trait]
