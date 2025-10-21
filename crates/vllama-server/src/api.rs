@@ -755,29 +755,6 @@ pub async fn chat(
     }
 }
 
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-struct MaxServiceModel {
-    model_id: String,
-    model_path: String,
-    loaded: bool,
-    size_vram: Option<u64>,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-struct MaxServiceGpuStats {
-    total_vram: u64,
-    used_vram: u64,
-    free_vram: u64,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-struct MaxServiceModelsResponse {
-    models: Vec<MaxServiceModel>,
-    gpu_stats: Option<MaxServiceGpuStats>,
-}
 
 #[derive(Debug, Serialize)]
 pub struct ProcessInfo {
@@ -801,81 +778,7 @@ pub struct PsResponse {
 pub async fn ps(State(_state): State<ServerState>) -> Response {
     info!("Process status request");
 
-    let client = reqwest::Client::new();
-    let llm_service_url = "http://127.0.0.1:8100";
-
-    match client.get(format!("{}/models", llm_service_url)).send().await {
-        Ok(response) => {
-            if !response.status().is_success() {
-                error!("LLM service returned error: {}", response.status());
-                return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-                    "error": "Failed to get model information from inference service"
-                }))).into_response();
-            }
-
-            match response.json::<MaxServiceModelsResponse>().await {
-                Ok(max_models) => {
-                    let mut processes = Vec::new();
-
-                    for model in max_models.models {
-                        let model_name = model.model_path.clone();
-
-                        let size = match std::fs::metadata(&model_name) {
-                            Ok(metadata) => metadata.len(),
-                            Err(_) => 0,
-                        };
-
-                        let (family, parameter_size, format) = if model_name.contains("Llama") || model_name.contains("llama") {
-                            let size = if model_name.contains("70B") {
-                                "70B"
-                            } else if model_name.contains("8B") {
-                                "8B"
-                            } else if model_name.contains("3B") {
-                                "3B"
-                            } else {
-                                "unknown"
-                            };
-                            ("llama", size, "gguf")
-                        } else {
-                            ("unknown", "unknown", "gguf")
-                        };
-
-                        let mut hasher = DefaultHasher::new();
-                        model_name.hash(&mut hasher);
-                        let digest = format!("sha256:{:x}", hasher.finish());
-
-                        processes.push(ProcessInfo {
-                            name: model_name.clone(),
-                            model: model_name,
-                            size,
-                            digest: Some(digest),
-                            details: ModelDetails {
-                                parent_model: "".to_string(),
-                                format: format.to_string(),
-                                family: family.to_string(),
-                                parameter_size: parameter_size.to_string(),
-                                quantization_level: "Q4_K_M".to_string(),
-                            },
-                            expires_at: None,
-                            size_vram: model.size_vram,
-                        });
-                    }
-
-                    Json(PsResponse { models: processes }).into_response()
-                }
-                Err(e) => {
-                    error!("Failed to parse inference service response: {}", e);
-                    (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-                        "error": format!("Failed to parse model information: {}", e)
-                    }))).into_response()
-                }
-            }
-        }
-        Err(e) => {
-            error!("Failed to connect to vLLM OpenAI server: {}", e);
-            (StatusCode::SERVICE_UNAVAILABLE, Json(serde_json::json!({
-                "error": "vLLM OpenAI server unavailable at http://127.0.0.1:8100. Use 'vllama serve --model <model-name>' to start the server automatically."
-            }))).into_response()
-        }
-    }
+    // vLLM OpenAI server manages models internally
+    // Model state not exposed via API - return empty list
+    Json(PsResponse { models: vec![] }).into_response()
 }

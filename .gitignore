@@ -44,7 +44,6 @@ __pycache__/
 venv/
 .venv/
 
-# MAX/Modular
-.modular/
-external/
-python/external/
+# Temporary test files
+*.pid
+/tmp/
