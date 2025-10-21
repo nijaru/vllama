@@ -1,7 +1,8 @@
 # vLLama - Project Status
 
 **Last Updated:** 2025-10-20
-**Version:** Phase 4+ Complete ✅
+**Version:** 0.0.x Development
+**Current Focus:** Performance Optimization
 
 ## What Is vLLama?
 
@@ -14,6 +15,29 @@ Drop-in Ollama replacement powered by vLLM's official OpenAI server.
 - Official libraries only (no custom wrappers)
 
 **Slogan:** "vroom vroom" 🏎️
+
+---
+
+## Current Status (0.0.x)
+
+**What Works:**
+- ✅ Core Ollama API (/api/generate, /api/chat, /api/pull, /api/tags)
+- ✅ Streaming and non-streaming
+- ✅ Proper chat completion with vLLM
+- ✅ 4.4x faster than Ollama (sequential)
+
+**What Needs Work:**
+- ⚠️ Concurrent performance (1.16x SLOWER than Ollama) 🔥
+- ⚠️ /api/ps returns empty array
+- ⚠️ /api/show has limited metadata
+- ❌ Missing /api/version
+
+**Current Focus:**
+- Optimize vLLM configuration for concurrent requests
+- Fix /api/ps and /api/show endpoints
+- Comprehensive benchmarking
+
+**See:** IMPLEMENTATION_PLAN.md for details
 
 ---
 
