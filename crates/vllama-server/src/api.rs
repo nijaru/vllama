@@ -5,7 +5,7 @@ use axum::{
     Json,
 };
 use futures::stream::{self};
-use vllama_core::{ChatMessage, ChatTemplate, GenerateRequest, GenerateOptions};
+use vllama_core::{ChatMessage, ChatRole, GenerateRequest, GenerateOptions};
 use vllama_engine::InferenceEngine;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
@@ -16,6 +16,19 @@ use std::time::Instant;
 use tracing::{error, info};
 
 use crate::state::ServerState;
+
+fn messages_to_prompt(messages: &[ChatMessage]) -> String {
+    messages
+        .iter()
+        .map(|msg| match msg.role {
+            ChatRole::System => format!("System: {}", msg.content),
+            ChatRole::User => format!("User: {}", msg.content),
+            ChatRole::Assistant => format!("Assistant: {}", msg.content),
+            ChatRole::Tool => format!("Tool: {}", msg.content),
+        })
+        .collect::<Vec<_>>()
+        .join("\n\n")
+}
 
 #[derive(Debug, Deserialize)]
 pub struct GenerateApiRequest {
@@ -566,11 +579,7 @@ pub async fn openai_chat_completions(
         }
     };
 
-    let prompt = if req.model.to_lowercase().contains("llama") {
-        vllama_core::Llama3Template.apply(&req.messages)
-    } else {
-        vllama_core::SimpleChatTemplate.apply(&req.messages)
-    };
+    let prompt = messages_to_prompt(&req.messages);
 
     let mut gen_req = GenerateRequest::new(
         handle.0,
@@ -744,11 +753,7 @@ pub async fn chat(
         }
     };
 
-    let prompt = if req.model.to_lowercase().contains("llama") {
-        vllama_core::Llama3Template.apply(&req.messages)
-    } else {
-        vllama_core::SimpleChatTemplate.apply(&req.messages)
-    };
+    let prompt = messages_to_prompt(&req.messages);
 
     let mut gen_req = GenerateRequest::new(
         handle.0,

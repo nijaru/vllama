@@ -4,7 +4,6 @@ pub mod response;
 pub mod model;
 pub mod hardware;
 pub mod error;
-pub mod templates;
 pub mod downloader;
 pub mod openai;
 
@@ -15,5 +14,4 @@ pub use model::{ModelHandle, ModelInfo, ModelFormat};
 pub use openai::{OpenAIClient, CompletionRequest, CompletionResponse, ChatCompletionRequest, ChatCompletionResponse};
 pub use request::{ChatMessage, ChatRequest, ChatRole, GenerateRequest, GenerateOptions, SamplingParams};
 pub use response::{GenerateResponse, TokenInfo, GenerationStats};
-pub use templates::{ChatTemplate, Llama3Template, SimpleChatTemplate, get_template_for_model};
 pub use types::{RequestId, Token, TokenId};
