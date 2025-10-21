@@ -1,257 +1,304 @@
 # vLLama - Project Status
 
-**Last Updated:** 2025-10-15
-**Version:** Phase 2 Complete ✅
+**Last Updated:** 2025-10-20
+**Version:** Phase 4+ Complete ✅
 
 ## What Is vLLama?
 
-Fast LLM inference server with Ollama-compatible API, powered by vLLM.
+Drop-in Ollama replacement powered by vLLM's official OpenAI server.
 
 **Core Value Proposition:**
-- Drop-in Ollama replacement (same API, same port)
-- 10x+ faster inference (GPU-accelerated via vLLM)
-- High-performance inference with PagedAttention
-- Performance-focused, not feature-complete
+- Same API as Ollama (port 11434)
+- GPU-accelerated inference via vLLM
+- One command to start (`vllama serve --model MODEL`)
+- Official libraries only (no custom wrappers)
 
-## Current Status: Phase 2 Complete ✅
+**Slogan:** "vroom vroom" 🏎️
+
+---
+
+## Current Status: Phase 4+ Complete ✅
+
+### Architecture
+
+**Single-service design:**
+```
+User → vLLama (Rust) → vLLM OpenAI Server → GPU
+```
+
+- vLLama translates Ollama API → OpenAI API
+- vLLM's official server handles batching, queuing, inference
+- Auto-start via `uv` (no manual Python service)
 
 ### Working Features
 
 **REST API (Ollama-compatible):**
 - ✅ `GET /health` - Health check
 - ✅ `POST /api/generate` - Text generation (streaming + non-streaming)
-- ✅ `POST /api/chat` - Chat completions (streaming + non-streaming)
-- ✅ `POST /api/pull` - Model downloads with progress tracking
-- ✅ `POST /api/show` - Model metadata (modelfile, parameters, details)
-- ✅ `GET /api/tags` - List loaded models
+- ✅ `POST /api/chat` - Chat completions with proper templating (streaming + non-streaming)
+- ✅ `POST /api/pull` - Model downloads from HuggingFace
+- ✅ `POST /api/show` - Model metadata
+- ✅ `GET /api/tags` - List models
 - ✅ `GET /api/ps` - Performance monitoring
 - ✅ `POST /v1/chat/completions` - OpenAI compatibility
 
-**Infrastructure:**
-- ✅ Rust server (Axum) on port 11434
-- ✅ Python vLLM service on port 8100
-- ✅ Auto-download models from HuggingFace on first request
-- ✅ GPU acceleration (RTX 4090 tested)
-- ✅ Model caching (loaded once, reused)
-- ✅ Proper error handling and logging
+**Key Improvements:**
+- ✅ **Proper chat templating** - Uses vLLM's `/v1/chat/completions` endpoint
+- ✅ **uv integration** - Automatic Python environment management
+- ✅ **Official libraries only** - No custom HTTP wrappers
+- ✅ **One-command startup** - `vllama serve --model MODEL`
 
-**Performance (RTX 4090):**
-- Model: meta-llama/Llama-3.1-8B-Instruct
-- Throughput: High-performance inference via vLLM
-- PagedAttention for efficient memory management
-- Optimized for GPU acceleration
+### Verified Testing
 
-### Known Issues
+**Comprehensive tests run 2025-10-20:**
+- Model: facebook/opt-125m
+- GPU: RTX 4090 (30% utilization)
+- All endpoints tested and documented
 
-**None** - All Phase 2 issues resolved!
+See `COMPREHENSIVE_TEST_RESULTS.md` for details.
 
-**Phase 3 - Benchmarking:**
-- ✅ Honest benchmark tool implemented (see `vllama bench` and BENCHMARKS.md)
-- ⏳ Needs real-world testing on RTX 4090 vs Ollama
-- ⏳ Performance characteristics documentation pending
+---
 
-**Phase 2 Complete!**
-All core API endpoints and features implemented:
-- ✅ Chat completions with proper templating
-- ✅ Model management (pull, show, tags)
-- ✅ OpenAI compatibility
-- ✅ Performance monitoring
-- ✅ Streaming support for all endpoints
+## Recent Changes (Phase 4+)
 
-## Phase 2 Roadmap - Core UX Features
+### Phase 4 Completion (13 commits)
 
-**Focus: What 80% of users need**
+**Removed custom implementations (-1,379 lines):**
+- Custom model downloader → `hf-hub` library
+- Custom vLLM wrapper → vLLM OpenAI server
+- Custom chat templates → vLLM built-in
+- Custom MAX/llama.cpp stubs
+- Custom HTTP engine abstraction
 
-### P0 - Must Have (Week 1-2)
+**Added official integrations (+869 lines):**
+- vLLM OpenAI server auto-start
+- `hf-hub` for model downloads
+- OpenAI client for chat completions
+- uv-based Python environment management
 
-1. **Chat Completions** (`/api/chat`)
-   - Multi-turn conversations
-   - System prompts
-   - Streaming support
-   - Ollama-compatible format
+**Result:**
+- Cleaner codebase
+- Better reliability (official libraries)
+- Easier maintenance
+- Proper chat templating
 
-2. **Model Management**
-   - `POST /api/pull` - Download from HuggingFace
-   - `GET /api/show` - Model info (size, family, parameters)
-   - `GET /api/tags` - List actually loaded models
-   - Progress tracking for downloads
+---
 
-3. **Better Error Messages**
-   - Clear messages when model not found
-   - Helpful suggestions (e.g., "Run: curl -X POST http://localhost:11434/api/pull -d '{\"name\":\"llama3.1:8b\"}'")
-   - Memory usage warnings
+## Quick Start
 
-### P1 - Should Have (Week 3-4)
+### Installation
 
-4. **OpenAI Compatibility**
-   - `POST /v1/chat/completions`
-   - Works with LangChain, llama-index, etc.
-   - Same API as OpenAI for drop-in replacement
+```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-5. **Performance Monitoring**
-   - `GET /api/ps` - Show running models + memory usage
-   - Basic metrics endpoint
-   - Prometheus-compatible (optional)
+# Install dependencies
+cd python
+uv sync --extra vllm
 
-6. **Better Model Discovery**
-   - Suggest models based on VRAM
-   - Show popular models
-   - Quantization level selection
+# Build vLLama
+cd ..
+cargo build --release
+```
 
-### P2 - Nice to Have (Future)
+### Usage
 
-7. **Connection Pooling** - Better concurrency
-8. **Request Batching** - Higher throughput
-9. **Multi-model Loading** - Run multiple models
-10. **Model Unloading** - Free VRAM when not in use
+```bash
+# One command - auto-starts everything
+./target/release/vllama serve --model meta-llama/Llama-3.2-1B-Instruct
 
-## Phase 3 - Future Enhancements
+# Test
+curl -X POST http://localhost:11434/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "meta-llama/Llama-3.2-1B-Instruct",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "stream": false
+  }'
+```
 
-**Goal: Production-ready features**
-
-1. ✅ vLLM backend integration (Complete)
-2. Performance benchmarking vs Ollama
-3. Request batching and optimization
-4. Multi-GPU support
-
-## Not Planned (Out of Scope)
-
-**We explicitly WON'T implement:**
-- ❌ `/api/push` - Uploading to ollama.ai
-- ❌ `/api/copy` - Local model copying
-- ❌ `/api/delete` - Manual deletion (use filesystem)
-- ❌ `/api/embed` - Embeddings (different use case)
-- ❌ Modelfile support - Use HuggingFace directly
-- ❌ Full Ollama CLI - Web API only
-
-**Rationale:** Focus on inference performance, not model management features.
+---
 
 ## Tech Stack
 
-**Current:**
-- Rust 1.90.0 (Axum web framework)
-- Python 3.12+ (via mise + uv)
-- vLLM (latest stable)
+**Languages:**
+- Rust 1.90+ (server, API, CLI)
+- Python 3.12 (managed by uv, for vLLM)
+
+**Core Dependencies:**
+- Axum (Rust web framework)
+- vLLM 0.11.0 (inference engine)
+- uv (Python environment manager)
+- hf-hub (Rust library for HuggingFace)
+
+**Infrastructure:**
 - Tokio async runtime
+- vLLM OpenAI server (official)
+- No Redis, no extra services
 
-**Future:**
-- Optional: Prometheus metrics
-- Optional: Redis for caching
-- Multi-GPU support
-
-## Development Setup
-
-**Fedora (GPU):**
-```bash
-# 1. Ensure gdm stopped (for full 24GB VRAM)
-sudo systemctl stop gdm
-
-# 2. Start vLLM service
-cd python && uv run uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
-
-# 3. Start vLLama server
-cargo run --release --bin vllama -- serve --host 127.0.0.1 --port 11434
-
-# 4. Test
-curl http://localhost:11434/health
-curl -X POST http://localhost:11434/api/generate \
-  -H "Content-Type: application/json" \
-  -d '{"model":"meta-llama/Llama-3.1-8B-Instruct","prompt":"Hello!","stream":false}'
-```
-
-**macOS (Development):**
-Same commands work on M3 Max (CPU inference).
+---
 
 ## Project Structure
 
 ```
 vllama/
 ├── crates/
-│   ├── vllama-core/          # Shared types and utilities
-│   ├── vllama-engine/        # Engine abstraction (vLLM, llama.cpp)
+│   ├── vllama-core/          # Shared types (ChatMessage, GenerateRequest, etc.)
+│   ├── vllama-engine/        # VllmOpenAIEngine implementation
 │   ├── vllama-server/        # REST API server
-│   ├── vllama-cli/           # CLI + benchmarks
+│   ├── vllama-cli/           # CLI commands (serve, bench)
 │   └── vllama-models/        # Model definitions
 ├── python/
-│   ├── llm_service/          # vLLM HTTP wrapper
-│   └── requirements.txt
-├── docs/                     # Planning docs
-└── PROJECT_STATUS.md         # This file (source of truth)
+│   ├── pyproject.toml        # Python dependencies
+│   └── uv.lock               # Locked dependencies
+├── README.md                 # User-facing docs
+├── COMPREHENSIVE_TEST_RESULTS.md  # Test documentation
+├── BENCHMARKS.md             # Benchmark guide
+├── FEDORA_SETUP.md           # System setup
+└── PROJECT_STATUS.md         # This file
 ```
+
+**Removed in Phase 4:**
+- `python/llm_service/` (custom vLLM wrapper)
+- `python/max_service/` (MAX wrapper)
+- `crates/vllama-engine/src/http_engine.rs` (HTTP abstraction)
+- `crates/vllama-engine/src/max.rs` (MAX engine)
+- `crates/vllama-engine/src/llama_cpp.rs` (stub)
+
+---
 
 ## Key Files
 
-**Code:**
-- `crates/vllama-server/src/api.rs` - API endpoints
-- `crates/vllama-engine/src/vllm.rs` - vLLM client
-- `python/llm_service/server.py` - vLLM service
+**Implementation:**
+- `crates/vllama-server/src/api.rs` - API endpoints (generate, chat, pull, etc.)
+- `crates/vllama-engine/src/vllm_openai.rs` - VllmOpenAIEngine
+- `crates/vllama-core/src/openai.rs` - OpenAI client
+- `crates/vllama-cli/src/commands/serve.rs` - Auto-start vLLM
 
-**Config:**
-- `Cargo.toml` - Rust dependencies
-- `python/requirements.txt` - Python dependencies
-- `.gitignore` - Excludes models, venv, target
+**Configuration:**
+- `Cargo.toml` - Rust workspace
+- `python/pyproject.toml` - Python dependencies
 
-**Docs:**
-- `PROJECT_STATUS.md` - **Current status** (this file)
-- `README.md` - User-facing getting started
-- `docs/` - Old planning docs (ignore)
+**Documentation:**
+- `README.md` - Getting started
+- `COMPREHENSIVE_TEST_RESULTS.md` - Test results
+- `BENCHMARKS.md` - Benchmark templates
+- `PROJECT_STATUS.md` - This file (source of truth)
+
+---
+
+## Not Planned (Out of Scope)
+
+**We explicitly WON'T implement:**
+- ❌ `/api/push` - Uploading models
+- ❌ `/api/copy` - Local model copying
+- ❌ `/api/delete` - Manual deletion (use filesystem)
+- ❌ `/api/embed` - Embeddings (different use case)
+- ❌ Modelfile support - Use HuggingFace directly
+
+**Rationale:** Focus on inference performance, not model management.
+
+---
 
 ## Success Metrics
 
-**Phase 1 Goals (✅ Complete):**
-- [x] Ollama-compatible API working
-- [x] GPU acceleration confirmed
-- [x] Streaming generation working
+**Phase 1 (✅ Complete):**
+- [x] Ollama-compatible API
+- [x] GPU acceleration
+- [x] Streaming generation
 - [x] Auto model loading
 
-**Phase 2 Goals:**
-- [x] Chat completions working
-- [x] Model pull from HuggingFace
-- [x] Model metadata (show, tags)
-- [x] OpenAI API compatibility
+**Phase 2 (✅ Complete):**
+- [x] Chat completions
+- [x] Model downloads from HuggingFace
+- [x] Model metadata
+- [x] OpenAI compatibility
 - [x] Performance monitoring
-- [x] Error messages with actionable suggestions
-- [x] Llama 3.1 chat templates
 
-**Phase 3 Goals:**
+**Phase 3 (✅ Complete):**
 - [x] vLLM backend integrated
-- [x] Honest benchmark tool with median/P99 metrics
-- [x] Performance comparison vs Ollama documented
-  - Sequential: 4.4x faster (232ms vs 1010ms)
-  - Concurrent: Nearly tied after AsyncLLMEngine fix (6.72s vs 6.50s)
-  - Streaming: 1.6x faster
-- [x] Tested multiple workload types (sequential, concurrent, streaming)
-- [x] **Fixed concurrency bottleneck** - Implemented AsyncLLMEngine
-- [ ] Multi-GPU support
+- [x] Performance benchmarking
+- [x] AsyncLLMEngine for concurrency
+
+**Phase 4+ (✅ Complete):**
+- [x] Removed all custom wrappers (-1,379 lines)
+- [x] Official library integration (+869 lines)
+- [x] uv-based Python management
+- [x] Proper chat completion endpoint
+- [x] Comprehensive testing
+- [x] Clean, maintainable codebase
+
+---
 
 ## Next Steps
 
-**Phase 3 Priorities:**
-1. ✅ ~~Proper performance benchmarking vs Ollama~~ (complete, see BENCHMARK_RESULTS.md)
-2. ✅ ~~Production deployment guide~~ (complete, see DEPLOYMENT.md)
-3. ✅ ~~Run benchmarks on real hardware~~ (RTX 4090 with Qwen 1.5B)
-4. ✅ ~~Test with variety of workloads~~ (sequential, concurrent, streaming)
-5. ✅ ~~Fix concurrent request handling~~ **COMPLETE** - Implemented AsyncLLMEngine
-   - Before: 7.57s (Ollama 16% faster)
-   - After: 6.72s (only 3% slower, nearly tied)
-6. Test with larger models (7B+) and higher concurrency (10+, 50+, 100+)
-7. Fine-tune AsyncLLMEngine batch processing configuration
-8. Multi-GPU support (vLLM tensor parallelism)
+**Production Readiness:**
+1. Test with larger models (7B+, 70B+)
+2. Load testing (concurrent requests)
+3. Performance benchmarking vs Ollama
+4. Docker deployment
+5. Multi-GPU support
 
-**Phase 3 Complete! ✅**
-- Core benchmarking and optimization complete
-- AsyncLLMEngine fix delivered 11% improvement
-- vLLama now competitive across all workload types
-
-**Potential Improvements:**
+**Optional Enhancements:**
+- Prometheus metrics
+- Request batching optimization
 - Model unloading to free VRAM
-- Connection pooling for better concurrency
-- Prometheus metrics export
-- Docker deployment
+- Connection pooling
 
+**Documentation:**
+- Deployment guide (update for new architecture)
+- Performance comparison
+- Chat model compatibility matrix
 
-## Project Ideas & Notes
+---
 
-**Slogan Candidates:**
-- "vroom vroom" - emphasizes speed and performance
+## Development
 
+**Testing:**
+```bash
+# Build
+cargo build --release
+
+# Run server
+./target/release/vllama serve --model facebook/opt-125m
+
+# Test endpoints
+curl http://localhost:11434/health
+curl -X POST http://localhost:11434/api/generate -H "Content-Type: application/json" -d '{"model":"facebook/opt-125m","prompt":"Hello","stream":false}'
+```
+
+**GPU Setup (Fedora):**
+```bash
+# Stop GDM for full 24GB VRAM
+sudo systemctl stop gdm
+
+# Server will use 30-90% GPU memory based on flags
+vllama serve --model MODEL --gpu-memory-utilization 0.9
+```
+
+---
+
+## Commit History
+
+**Phase 4+ Commits (2025-10-20):**
+```
+3241ae2 docs: add comprehensive test results
+0c0bc46 feat: use vLLM chat completion endpoint for proper templating
+745285b docs: add uv integration test results
+872c421 docs: update README to reflect uv integration
+5886ca5 feat: integrate uv for Python environment management
+4191d30 docs: add end-to-end test results for Phase 4
+7e265c6 docs: add comprehensive test results for Phase 4 cleanup
+5f654e0 refactor: remove all custom engine wrappers and stubs (-1,165 lines)
+c32f292 refactor: remove custom chat templates module (-119 lines)
+e83124a feat: auto-start vLLM OpenAI server in serve command
+ce223a1 refactor: replace VllmEngine with VllmOpenAIEngine (-95 lines)
+3b26e0e feat: add vLLM OpenAI server integration
+a300013 feat: replace custom downloader with official hf-hub
+```
+
+**Total:** 13 commits, -1,379 lines removed, +869 lines added
+
+---
+
+*Last updated: 2025-10-20 after Phase 4+ completion and comprehensive testing*

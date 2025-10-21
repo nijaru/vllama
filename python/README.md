@@ -1,84 +1,94 @@
-# vLLama Python Services
+# vLLama Python Environment
 
-This directory contains Python microservices that bridge vLLama (Rust) with Python-based inference engines.
+This directory contains Python dependencies for vLLama's inference backend.
 
-## vLLM Service (Primary)
+## Architecture
 
-Thin wrapper around vLLM's Python API.
+vLLama uses vLLM's official OpenAI-compatible server for inference. The Python environment is managed by `uv` and spawned automatically by the Rust binary.
 
-### Installation
+**No manual Python service needed** - the `vllama serve` command handles everything.
+
+## Installation
 
 ```bash
-# Install dependencies with uv
-uv sync
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install vLLM (optional dependency, requires CUDA for GPU support)
-uv pip install vllm
+# Install Python dependencies
+cd python
+uv sync --extra vllm
 ```
 
-### Running
+This installs:
+- vLLM (GPU-accelerated inference engine)
+- FastAPI, Uvicorn, Pydantic (used by vLLM's OpenAI server)
+
+## Usage
+
+The Rust binary automatically manages the Python environment:
 
 ```bash
-# Start the service
-uv run uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
+# vLLama handles Python environment via uv
+cargo run --release -- serve --model meta-llama/Llama-3.2-1B-Instruct
+
+# Under the hood:
+# 1. Rust spawns: uv run --directory python python -m vllm.entrypoints.openai.api_server
+# 2. vLLM server starts on port 8100
+# 3. vLLama serves Ollama-compatible API on port 11434
 ```
 
-### API
+## Manual Testing (Optional)
 
-Same endpoints as MAX Engine service below.
-
-## MAX Engine Service (Alternative)
-
-Thin wrapper around MAX Engine's Python API.
-
-### Installation
+If you need to test vLLM directly:
 
 ```bash
-# Install dependencies with uv
-uv sync
+cd python
 
-# Install MAX Engine (nightly)
-uv pip install modular --index-url https://dl.modular.com/public/nightly/python/simple/
-```
+# Start vLLM OpenAI server
+uv run python -m vllm.entrypoints.openai.api_server \
+  --model facebook/opt-125m \
+  --port 8100
 
-### Running
-
-```bash
-# Start the service
-uv run uvicorn max_service.server:app --host 127.0.0.1 --port 8100
-```
-
-### API
-
-#### Health Check
-```bash
-curl http://localhost:8100/health
-```
-
-#### Load Model
-```bash
-curl -X POST http://localhost:8100/models/load \
-  -H "Content-Type: application/json" \
-  -d '{"model_path": "modularai/Llama-3.1-8B-Instruct-GGUF"}'
-```
-
-#### Generate
-```bash
-curl -X POST http://localhost:8100/generate \
+# Test
+curl http://localhost:8100/v1/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model_id": "modularai_Llama-3.1-8B-Instruct-GGUF",
+    "model": "facebook/opt-125m",
     "prompt": "Hello, world!",
-    "max_tokens": 100
+    "max_tokens": 50
   }'
 ```
 
-#### List Models
-```bash
-curl http://localhost:8100/models
+## Dependencies
+
+Managed via `pyproject.toml`:
+- **Required:** fastapi, uvicorn, pydantic
+- **Optional (vllm):** vLLM inference engine
+
+```toml
+[project.optional-dependencies]
+vllm = [
+    "vllm>=0.5.0",
+]
 ```
 
-#### Unload Model
+## Troubleshooting
+
+**vLLM not found:**
 ```bash
-curl -X POST "http://localhost:8100/models/unload?model_id=modularai_Llama-3.1-8B-Instruct-GGUF"
+cd python
+uv sync --extra vllm
+```
+
+**GPU memory errors:**
+```bash
+# Reduce GPU memory utilization
+vllama serve --model MODEL --gpu-memory-utilization 0.5
+```
+
+**Python version issues:**
+```bash
+# vLLM requires Python 3.10-3.12
+mise use python@3.12
+uv sync --extra vllm
 ```
