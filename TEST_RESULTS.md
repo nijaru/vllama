@@ -58,16 +58,81 @@ crates/vllama-engine/src/llama_cpp.rs   82 lines (stub)
 - **Result:** Successfully spawns `python -m vllm.entrypoints.openai.api_server`
 - **Observation:** Process management working correctly
 
+### 6. End-to-End Integration Testing
+- **Status:** ✅ PASS
+- **Model:** facebook/opt-125m
+- **Test:** Full API endpoint verification with real vLLM inference
+
+**Test Results:**
+
+#### Health Endpoint
+```bash
+$ curl http://127.0.0.1:11434/health
+OK
+```
+- **Status:** ✅ PASS
+- **Response Time:** <10ms
+
+#### Generate Endpoint
+```bash
+$ curl -X POST http://127.0.0.1:11434/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{"model": "facebook/opt-125m", "prompt": "Once upon a time", "stream": false}'
+```
+**Response:**
+```json
+{
+  "model": "facebook/opt-125m",
+  "response": ", my daughter was in my room and we were discussing a story.\nShe",
+  "done": true,
+  "total_duration": 46891667
+}
+```
+- **Status:** ✅ PASS
+- **Inference Time:** ~47ms
+
+#### Chat Endpoint
+```bash
+$ curl -X POST http://127.0.0.1:11434/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"model": "facebook/opt-125m", "messages": [{"role": "user", "content": "What is 2+2?"}], "stream": false}'
+```
+**Response:**
+```json
+{
+  "model": "facebook/opt-125m",
+  "message": {
+    "role": "assistant",
+    "content": "   Answer: I think so.\nI mean, it's a no"
+  },
+  "done": true,
+  "total_duration": 28693470
+}
+```
+- **Status:** ✅ PASS
+- **Inference Time:** ~29ms
+
+### 7. Graceful Shutdown
+- **Status:** ✅ PASS
+- **Test:** SIGTERM signal handling
+- **Result:** Server and vLLM subprocess both terminate cleanly
+- **Port Cleanup:** Both ports 8100 and 11434 released successfully
+
 ---
 
 ## ⚠️ Known Issues
 
-### 1. Test Model Compatibility
+### 1. Python Environment Management
+- **Issue:** Using PATH workaround instead of proper uv integration
+- **Current Approach:** `PATH="/path/to/.venv/bin:$PATH" vllama serve`
+- **Recommendation:** Implement proper uv integration for cleaner Python environment handling
+- **Impact:** Minor - works but not ideal for production deployment
+
+### 2. Test Model Compatibility
 - **Issue:** `hf-internal-testing/tiny-random-gpt2` not compatible with vLLM
 - **Error:** "No model architectures are specified"
 - **Cause:** Test model lacks required HuggingFace model architecture metadata
-- **Impact:** Cannot complete full end-to-end test without real model
-- **Workaround:** Use actual vLLM-supported models for testing (e.g., `facebook/opt-125m`)
+- **Solution:** Use real vLLM-compatible models (e.g., `facebook/opt-125m`)
 
 ---
 
@@ -96,14 +161,14 @@ vllama serve --no-vllm --vllm-port 8100
 
 ### Test Checklist for Real Model
 
-- [ ] Server starts without errors
-- [ ] vLLM process spawns successfully
-- [ ] Health check responds (GET /health)
-- [ ] Generate endpoint works (POST /api/generate)
-- [ ] Chat endpoint works (POST /api/chat)
-- [ ] OpenAI endpoint works (POST /v1/chat/completions)
-- [ ] Graceful shutdown (Ctrl+C)
-- [ ] vLLM subprocess cleanup
+- [x] Server starts without errors
+- [x] vLLM process spawns successfully
+- [x] Health check responds (GET /health)
+- [x] Generate endpoint works (POST /api/generate)
+- [x] Chat endpoint works (POST /api/chat)
+- [ ] OpenAI endpoint works (POST /v1/chat/completions) - Not tested yet
+- [x] Graceful shutdown (Ctrl+C / SIGTERM)
+- [x] vLLM subprocess cleanup
 
 ---
 
@@ -131,7 +196,7 @@ vllama serve --no-vllm --vllm-port 8100
 - ✅ Deployment with real models
 - ✅ Production testing
 - ✅ Performance benchmarking
-- ⏳ End-to-end functional testing (needs real model)
+- ✅ End-to-end functional testing (completed with facebook/opt-125m)
 
 ---
 
@@ -151,22 +216,37 @@ vllama serve --no-vllm --vllm-port 8100
 
 ## Next Steps
 
-1. **Download a real vLLM-compatible model** for full integration testing
-2. **Run end-to-end tests** with `facebook/opt-125m` or larger model
-3. **Verify all API endpoints** with actual inference
-4. **Test graceful shutdown** and process cleanup
-5. **Run performance benchmarks** comparing to previous version
-6. **Update documentation** with test results
+1. ✅ ~~Download a real vLLM-compatible model for full integration testing~~ (Complete)
+2. ✅ ~~Run end-to-end tests with `facebook/opt-125m`~~ (Complete)
+3. ✅ ~~Verify all API endpoints with actual inference~~ (Complete - health, generate, chat)
+4. ✅ ~~Test graceful shutdown and process cleanup~~ (Complete)
+5. **Implement proper uv integration** to replace PATH workaround
+6. **Test OpenAI endpoint** (`POST /v1/chat/completions`)
+7. **Run performance benchmarks** comparing to previous version
+8. **Test with larger models** (e.g., meta-llama/Llama-3.2-1B-Instruct)
+9. **Test streaming endpoints** (stream: true for generate/chat)
 
 ---
 
 ## Conclusion
 
-**Overall Status: ✅ BUILD VERIFIED, READY FOR INTEGRATION TESTING**
+**Overall Status: ✅ PHASE 4 COMPLETE - END-TO-END TESTING SUCCESSFUL**
 
-The cleanup was successful. All custom wrappers have been removed, the codebase is simplified to vLLM-only architecture, and the build is clean. The serve command correctly attempts to spawn vLLM processes.
+The cleanup and integration testing are both complete. All custom wrappers have been removed, the codebase is simplified to vLLM-only architecture, and the build is clean.
 
-Full end-to-end testing requires a real vLLM-compatible model but all infrastructure is in place and functional.
+**End-to-End Testing Summary:**
+- ✅ Server successfully starts with auto-spawned vLLM subprocess
+- ✅ Health endpoint responding correctly
+- ✅ Generate endpoint producing valid inference results (~47ms)
+- ✅ Chat endpoint producing valid chat completions (~29ms)
+- ✅ Graceful shutdown with proper subprocess cleanup
+- ✅ Model: facebook/opt-125m (real vLLM-compatible model)
+
+**Infrastructure Verified:**
+- Process spawning and management working correctly
+- Signal handling (SIGTERM) functioning properly
+- Port cleanup confirmed (8100 and 11434)
+- vLLM OpenAI server integration fully operational
 
 **Commits:**
 - a300013: Replace custom downloader with hf-hub (-160 lines)
