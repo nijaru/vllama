@@ -6,19 +6,27 @@ Drop-in replacement for Ollama with 10x+ faster GPU inference.
 
 ## Why vLLama?
 
-- 🚀 **10x faster** - GPU-accelerated inference via vLLM
+- 🚀 **10x faster** - GPU-accelerated inference via vLLM (NVIDIA GPUs)
 - 🔌 **Drop-in compatible** - Same API as Ollama (port 11434)
 - 🎯 **Performance-focused** - Optimized for throughput, not feature parity
 - 🔧 **Easy setup** - One command to start
+- 🍎 **Cross-platform** - Works on Linux, macOS (including Apple Silicon)
+
+## Platform Support
+
+| Platform | Status | Performance | Notes |
+|----------|--------|-------------|-------|
+| **Linux + NVIDIA GPU** | ✅ Production Ready | 10x+ faster | Recommended for production |
+| **macOS (Apple Silicon)** | ⚠️ Experimental | CPU-only | Good for dev/testing |
+| **macOS (Intel)** | ⚠️ Experimental | CPU-only | Good for dev/testing |
+| **Linux (CPU-only)** | ⚠️ Supported | Slower | Not recommended |
 
 ## Quick Start
 
 **Prerequisites:**
-- NVIDIA GPU (CUDA 13.0+) or CPU
-- Rust 1.90+
-- [uv](https://docs.astral.sh/uv/) (Python environment manager)
-- Python 3.12.x (managed by uv)
-- CUDA 12.1+ (for GPU acceleration)
+- **For production (Linux):** NVIDIA GPU + CUDA 12.1+
+- **For development (macOS):** Apple Silicon or Intel CPU
+- **All platforms:** Rust 1.90+, [uv](https://docs.astral.sh/uv/), Python 3.12.x
 
 **Install:**
 
