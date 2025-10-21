@@ -120,15 +120,17 @@ $ curl -X POST http://127.0.0.1:11434/api/chat \
 
 ---
 
+### 8. uv Integration
+- **Status:** ✅ PASS (Added 2025-10-20)
+- **Test:** Automatic Python environment management via uv
+- **Result:** Server successfully spawns vLLM using `uv run --directory python`
+- **Verified:** No PATH workarounds needed, clean environment handling
+
+---
+
 ## ⚠️ Known Issues
 
-### 1. Python Environment Management
-- **Issue:** Using PATH workaround instead of proper uv integration
-- **Current Approach:** `PATH="/path/to/.venv/bin:$PATH" vllama serve`
-- **Recommendation:** Implement proper uv integration for cleaner Python environment handling
-- **Impact:** Minor - works but not ideal for production deployment
-
-### 2. Test Model Compatibility
+### 1. Test Model Compatibility
 - **Issue:** `hf-internal-testing/tiny-random-gpt2` not compatible with vLLM
 - **Error:** "No model architectures are specified"
 - **Cause:** Test model lacks required HuggingFace model architecture metadata
@@ -220,7 +222,7 @@ vllama serve --no-vllm --vllm-port 8100
 2. ✅ ~~Run end-to-end tests with `facebook/opt-125m`~~ (Complete)
 3. ✅ ~~Verify all API endpoints with actual inference~~ (Complete - health, generate, chat)
 4. ✅ ~~Test graceful shutdown and process cleanup~~ (Complete)
-5. **Implement proper uv integration** to replace PATH workaround
+5. ✅ ~~Implement proper uv integration to replace PATH workaround~~ (Complete - commit 5886ca5)
 6. **Test OpenAI endpoint** (`POST /v1/chat/completions`)
 7. **Run performance benchmarks** comparing to previous version
 8. **Test with larger models** (e.g., meta-llama/Llama-3.2-1B-Instruct)
