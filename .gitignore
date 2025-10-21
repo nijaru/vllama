@@ -47,3 +47,7 @@ venv/
 # Temporary test files
 *.pid
 /tmp/
+
+# External dependencies (managed by uv, mise, etc.)
+external/
+python/external/
