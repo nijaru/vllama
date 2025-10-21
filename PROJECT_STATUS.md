@@ -17,6 +17,23 @@ Drop-in Ollama replacement powered by vLLM's official OpenAI server.
 
 ---
 
+## Platform Support
+
+| Platform | Status | Performance | Notes |
+|----------|--------|-------------|-------|
+| **Linux + NVIDIA GPU** | ✅ Production Ready | 10x+ faster | Recommended for production |
+| **macOS (Apple Silicon)** | ⚠️ Experimental | CPU-only | Good for dev/testing |
+| **macOS (Intel)** | ⚠️ Experimental | CPU-only | Good for dev/testing |
+| **Linux (CPU-only)** | ⚠️ Supported | Slower | Not recommended |
+
+**Key Points:**
+- **Production:** Linux with NVIDIA GPU (CUDA 12.1+) for maximum performance
+- **Development:** macOS works for testing with CPU-only vLLM (experimental)
+- **Limitation:** vLLM GPU acceleration requires NVIDIA GPUs (no AMD/Intel Arc support)
+- **Cross-platform:** Rust code works everywhere, Python vLLM determines acceleration
+
+---
+
 ## Current Status: Phase 4+ Complete ✅
 
 ### Architecture
