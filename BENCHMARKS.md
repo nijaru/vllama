@@ -1,5 +1,18 @@
 # vLLama Benchmarking Guide
 
+## Platform-Specific Performance
+
+**Expected performance varies significantly by platform:**
+
+| Platform | vLLama Performance | Notes |
+|----------|-------------------|-------|
+| **Linux + NVIDIA GPU** | 10x+ faster than Ollama | Production performance, GPU acceleration via vLLM |
+| **macOS (Apple Silicon)** | Similar to Ollama | Both run CPU-only, vLLM advantage minimal |
+| **macOS (Intel)** | Similar to Ollama | Both run CPU-only, vLLM advantage minimal |
+| **Linux (CPU-only)** | Slightly faster | vLLM optimizations help but limited without GPU |
+
+**Key Insight:** vLLama's speed advantage comes from vLLM's GPU acceleration. On CPU-only platforms (macOS), expect similar performance to Ollama.
+
 ## Running Benchmarks
 
 vLLama includes a benchmark tool to compare performance against Ollama.
@@ -22,13 +35,12 @@ OLLAMA_HOST=127.0.0.1:11435 ollama serve
 OLLAMA_HOST=127.0.0.1:11435 ollama pull llama3.1:8b
 ```
 
-**Start vLLama services:**
+**Start vLLama:**
 ```bash
-# Terminal 1: vLLM service
-cd python && uv run uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
-
-# Terminal 2: vLLama server
-cargo run --release --bin vllama -- serve --host 127.0.0.1 --port 11434
+# One command - auto-starts everything
+cargo run --release --bin vllama -- serve \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --port 11434
 ```
 
 **Run benchmark:**
@@ -51,15 +63,15 @@ The benchmark reports:
 ### Caveats
 
 ⚠️ **What This Tests:**
-- vLLama: Direct Python engine access (minimal HTTP overhead)
-- Ollama: Full HTTP API stack on port 11435
+- vLLama: Ollama API → vLLM OpenAI server (port 8100 by default)
+- Ollama: Ollama API on port 11435
 
 ⚠️ **Limitations:**
 - Both systems limited to **50 tokens per response** (max_tokens=50)
-- Comparing different levels: direct engine vs HTTP API
 - Single-threaded sequential requests (no concurrency testing)
 - No warmup runs (first request may be slower)
 - Both systems must have same model loaded for fair comparison
+- Performance advantage requires GPU - CPU-only platforms show minimal difference
 
 ⚠️ **What This Doesn't Test:**
 - Concurrent request handling
@@ -99,7 +111,8 @@ When publishing benchmark results, use this template:
 - Ollama: [version, backend, configuration]
 
 **Hardware:**
-- GPU: [model, VRAM]
+- Platform: [Linux + NVIDIA GPU / macOS (Apple Silicon) / etc.]
+- GPU: [model, VRAM] or "CPU-only"
 - CPU: [model, cores]
 - RAM: [total GB]
 - OS: [Linux/macOS version]
@@ -125,9 +138,10 @@ When publishing benchmark results, use this template:
 
 **Caveats:**
 - Token counts estimated, not measured
-- vLLama uses direct engine access
-- Ollama uses HTTP API
+- vLLama uses vLLM OpenAI server backend
+- Ollama uses its own inference backend
 - No concurrent requests tested
+- Performance differences depend heavily on platform (GPU vs CPU)
 - [Any other limitations]
 
 **Honest Assessment:**
