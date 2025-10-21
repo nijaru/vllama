@@ -105,8 +105,12 @@ fn start_vllm_server(
     max_num_seqs: usize,
     gpu_memory_utilization: f32,
 ) -> Result<Child> {
-    let child = Command::new("python")
+    let child = Command::new("uv")
         .args([
+            "run",
+            "--directory",
+            "python",
+            "python",
             "-m",
             "vllm.entrypoints.openai.api_server",
             "--model",
@@ -121,7 +125,7 @@ fn start_vllm_server(
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .spawn()
-        .context("Failed to start vLLM server. Is vLLM installed? (pip install vllm)")?;
+        .context("Failed to start vLLM server. Is uv installed? (curl -LsSf https://astral.sh/uv/install.sh | sh)")?;
 
     Ok(child)
 }
