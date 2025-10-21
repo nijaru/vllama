@@ -24,7 +24,9 @@ pub async fn run(
             println!("   Model: {}", model_name);
             println!("   Port: {}", vllm_port);
             println!("   Max sequences: {}", max_num_seqs);
+            println!("   Batched tokens: 16384 (optimized)");
             println!("   GPU memory: {:.0}%", gpu_memory_utilization * 100.0);
+            println!("   Optimizations: chunked-prefill ✓ prefix-caching ✓");
             println!();
 
             vllm_process = Some(start_vllm_server(
@@ -117,8 +119,18 @@ fn start_vllm_server(
             model,
             "--port",
             &port.to_string(),
+            // Concurrency & Batching
             "--max-num-seqs",
             &max_num_seqs.to_string(),
+            "--max-num-batched-tokens",
+            "16384", // 32x increase from default (512) for better throughput
+            // Context length
+            "--max-model-len",
+            "4096", // Typical context length for most workloads
+            // Performance optimizations
+            "--enable-chunked-prefill", // Better concurrent request handling
+            "--enable-prefix-caching",  // Reuse KV cache for repeated prompts
+            // Memory
             "--gpu-memory-utilization",
             &gpu_memory_utilization.to_string(),
         ])
