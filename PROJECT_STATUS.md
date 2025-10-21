@@ -248,3 +248,10 @@ vllama/
 - Connection pooling for better concurrency
 - Prometheus metrics export
 - Docker deployment
+
+
+## Project Ideas & Notes
+
+**Slogan Candidates:**
+- "vroom vroom" - emphasizes speed and performance
+

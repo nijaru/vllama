@@ -1,72 +1,44 @@
 use crate::engine::{EngineType, InferenceEngine};
-use crate::{llama_cpp::LlamaCppEngine, max::MaxEngine, vllm_openai::VllmOpenAIEngine};
+use crate::vllm_openai::VllmOpenAIEngine;
 use vllama_core::{Hardware, Result};
 use std::sync::Arc;
-use tracing::{info, warn};
+use tracing::info;
 
 pub struct EngineOrchestrator {
-    engines: Vec<Arc<dyn InferenceEngine>>,
+    engine: Arc<dyn InferenceEngine>,
     hardware: Hardware,
 }
 
 impl EngineOrchestrator {
     pub fn new(hardware: Hardware) -> Self {
+        let engine = VllmOpenAIEngine::new("http://127.0.0.1:8100");
+
         Self {
-            engines: Vec::new(),
+            engine: Arc::new(engine),
             hardware,
         }
     }
 
     pub async fn initialize(&mut self) -> Result<()> {
-        info!("Initializing engine orchestrator");
+        info!("Initializing vLLM OpenAI engine");
         info!("Detected hardware: {:?}", self.hardware);
 
-        let vllm_engine = VllmOpenAIEngine::new("http://127.0.0.1:8100");
-        if vllm_engine.supports_hardware(&self.hardware) {
-            info!("vLLM OpenAI Engine available and compatible");
-            self.engines.push(Arc::new(vllm_engine));
-        }
-
-        if let Ok(max_engine) = MaxEngine::new() {
-            if max_engine.supports_hardware(&self.hardware) {
-                info!("MAX Engine available and compatible (fallback)");
-                self.engines.push(Arc::new(max_engine));
-            }
-        }
-
-        if let Ok(llama_cpp_engine) = LlamaCppEngine::new() {
-            info!("llama.cpp Engine available (fallback)");
-            self.engines.push(Arc::new(llama_cpp_engine));
-        }
-
-        if self.engines.is_empty() {
-            warn!("No inference engines available!");
-        } else {
-            info!("Initialized {} engine(s)", self.engines.len());
-        }
+        let caps = self.engine.capabilities();
+        info!(
+            "vLLM engine ready (continuous_batching: {}, flash_attention: {})",
+            caps.supports_continuous_batching,
+            caps.supports_flash_attention
+        );
 
         Ok(())
     }
 
     pub fn select_engine(&self) -> Option<Arc<dyn InferenceEngine>> {
-        for engine in &self.engines {
-            if engine.supports_hardware(&self.hardware) {
-                let caps = engine.capabilities();
-                info!(
-                    "Selected {:?} engine (continuous_batching: {}, flash_attention: {})",
-                    engine.engine_type(),
-                    caps.supports_continuous_batching,
-                    caps.supports_flash_attention
-                );
-                return Some(engine.clone());
-            }
-        }
-
-        self.engines.first().cloned()
+        Some(self.engine.clone())
     }
 
     pub fn available_engines(&self) -> Vec<EngineType> {
-        self.engines.iter().map(|e| e.engine_type()).collect()
+        vec![self.engine.engine_type()]
     }
 
     pub fn hardware(&self) -> &Hardware {

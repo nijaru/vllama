@@ -30,11 +30,16 @@ uv sync --extra vllm  # Install vLLM and dependencies
 **Start the server:**
 
 ```bash
-# Terminal 1: Start vLLM service
-cd python && .venv/bin/uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
+# One command - auto-starts vLLM OpenAI server
+cargo run --release --bin vllama -- serve --model meta-llama/Llama-3.2-1B-Instruct
 
-# Terminal 2: Start vLLama
-cargo run --release --bin vllama -- serve --host 127.0.0.1 --port 11434
+# Or use custom settings
+cargo run --release --bin vllama -- serve \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --port 11434 \
+  --vllm-port 8100 \
+  --max-num-seqs 256 \
+  --gpu-memory-utilization 0.9
 ```
 
 **Use it:**
@@ -105,13 +110,17 @@ Models auto-download on first request.
 Client Request
     ↓
 vLLama Server (Rust, port 11434)
-    ↓ HTTP
-vLLM Service (Python, port 8100)
-    ↓
-vLLM Engine
+    ↓ OpenAI API
+vLLM OpenAI Server (Python, port 8100)
     ↓
 GPU/CPU
 ```
+
+**Clean & Simple:**
+- One Rust server (Ollama-compatible API)
+- One Python process (vLLM's official OpenAI server)
+- Standard OpenAI protocol in between
+- No custom wrappers or abstractions
 
 ## Installation
 

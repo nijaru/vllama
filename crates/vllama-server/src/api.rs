@@ -11,7 +11,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
 use std::convert::Infallible;
 use std::hash::{Hash, Hasher};
-use std::path::PathBuf;
 use std::time::Instant;
 use tracing::{error, info};
 
@@ -208,44 +207,9 @@ pub async fn generate(
 ) -> Response {
     info!("Generate request for model: {}", req.model);
 
-    let model_path = PathBuf::from(&req.model);
-
-    let handle = match state.loaded_models.get(&req.model) {
-        Some(h) => *h,
-        None => {
-            info!("Loading model: {}", req.model);
-            let mut engine = state.engine.lock().await;
-
-            match engine.load_model(&model_path).await {
-                Ok(h) => {
-                    state.loaded_models.insert(req.model.clone(), h);
-                    h
-                }
-                Err(e) => {
-                    error!("Failed to load model: {}", e);
-                    return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-                        "error": format!("Failed to load model: {}. Tip: Use HuggingFace repo IDs (e.g., 'bartowski/Llama-3.2-1B-Instruct-GGUF') and download with /api/pull first.", e)
-                    }))).into_response();
-                }
-            }
-        }
-    };
-
-    let model_id = {
-        let engine = state.engine.lock().await;
-        match engine.get_model_id(handle) {
-            Some(id) => id,
-            None => {
-                return (StatusCode::NOT_FOUND, Json(serde_json::json!({
-                    "error": format!("Model '{}' not found. If this is a HuggingFace model, use /api/pull to download it first: curl -X POST http://localhost:11434/api/pull -d '{{\"model\":\"{}\"}}' ", req.model, req.model)
-                }))).into_response();
-            }
-        }
-    };
-
     let mut gen_req = GenerateRequest::new(
-        handle.0,
-        model_id,
+        0,  // Request ID
+        req.model.clone(),
         req.prompt.clone(),
     );
 
@@ -538,52 +502,11 @@ pub async fn openai_chat_completions(
 ) -> Response {
     info!("OpenAI chat completions request for model: {}", req.model);
 
-    let model_path = PathBuf::from(&req.model);
-
-    let handle = match state.loaded_models.get(&req.model) {
-        Some(h) => *h,
-        None => {
-            info!("Loading model: {}", req.model);
-            let mut engine = state.engine.lock().await;
-
-            match engine.load_model(&model_path).await {
-                Ok(h) => {
-                    state.loaded_models.insert(req.model.clone(), h);
-                    h
-                }
-                Err(e) => {
-                    error!("Failed to load model: {}", e);
-                    return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-                        "error": {
-                            "message": format!("Failed to load model: {}. Tip: Use HuggingFace repo IDs (e.g., 'bartowski/Llama-3.2-1B-Instruct-GGUF') and download with /api/pull first.", e),
-                            "type": "server_error"
-                        }
-                    }))).into_response();
-                }
-            }
-        }
-    };
-
-    let model_id = {
-        let engine = state.engine.lock().await;
-        match engine.get_model_id(handle) {
-            Some(id) => id,
-            None => {
-                return (StatusCode::NOT_FOUND, Json(serde_json::json!({
-                    "error": {
-                        "message": format!("Model '{}' not found. If this is a HuggingFace model, use /api/pull to download it first.", req.model),
-                        "type": "invalid_request_error"
-                    }
-                }))).into_response();
-            }
-        }
-    };
-
     let prompt = messages_to_prompt(&req.messages);
 
     let mut gen_req = GenerateRequest::new(
-        handle.0,
-        model_id,
+        0,  // Request ID
+        req.model.clone(),
         prompt,
     );
 
@@ -718,46 +641,11 @@ pub async fn chat(
 ) -> Response {
     info!("Chat request for model: {}", req.model);
 
-    let model_path = PathBuf::from(&req.model);
-
-    let handle = match state.loaded_models.get(&req.model) {
-        Some(h) => *h,
-        None => {
-            info!("Loading model: {}", req.model);
-            let mut engine = state.engine.lock().await;
-
-            match engine.load_model(&model_path).await {
-                Ok(h) => {
-                    state.loaded_models.insert(req.model.clone(), h);
-                    h
-                }
-                Err(e) => {
-                    error!("Failed to load model: {}", e);
-                    return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
-                        "error": format!("Failed to load model: {}. Tip: Use HuggingFace repo IDs (e.g., 'bartowski/Llama-3.2-1B-Instruct-GGUF') and download with /api/pull first.", e)
-                    }))).into_response();
-                }
-            }
-        }
-    };
-
-    let model_id = {
-        let engine = state.engine.lock().await;
-        match engine.get_model_id(handle) {
-            Some(id) => id,
-            None => {
-                return (StatusCode::NOT_FOUND, Json(serde_json::json!({
-                    "error": format!("Model '{}' not found. If this is a HuggingFace model, use /api/pull to download it first: curl -X POST http://localhost:11434/api/pull -d '{{\"model\":\"{}\"}}' ", req.model, req.model)
-                }))).into_response();
-            }
-        }
-    };
-
     let prompt = messages_to_prompt(&req.messages);
 
     let mut gen_req = GenerateRequest::new(
-        handle.0,
-        model_id,
+        0,  // Request ID
+        req.model.clone(),
         prompt,
     );
 
@@ -975,9 +863,9 @@ pub async fn ps(State(_state): State<ServerState>) -> Response {
             }
         }
         Err(e) => {
-            error!("Failed to connect to inference service: {}", e);
+            error!("Failed to connect to vLLM OpenAI server: {}", e);
             (StatusCode::SERVICE_UNAVAILABLE, Json(serde_json::json!({
-                "error": "Inference service unavailable. Ensure the LLM service is running at http://127.0.0.1:8100. Check python/llm_service/server.py"
+                "error": "vLLM OpenAI server unavailable at http://127.0.0.1:8100. Use 'vllama serve --model <model-name>' to start the server automatically."
             }))).into_response()
         }
     }
