@@ -18,9 +18,9 @@ _Last Updated: 2025-10-22_
 - ✅ /api/chat (proper chat templates via vLLM)
 - ✅ /api/pull (HuggingFace model downloads)
 - ✅ /api/tags (list models)
-- ⚠️ /api/ps (returns empty array - needs fix)
-- ⚠️ /api/show (limited metadata - needs improvement)
-- ❌ /api/version (missing)
+- ✅ /api/ps (queries vLLM for running models)
+- ✅ /api/show (queries vLLM for model metadata)
+- ✅ /api/version (returns vLLama version)
 - ❌ /api/embeddings (skipped for 0.0.x - RAG use case)
 
 **Platform support:**
@@ -61,8 +61,9 @@ _Last Updated: 2025-10-22_
 - ✅ Reorganized docs per agent-contexts standard
 - ✅ Tested concurrent performance (5, 10, 50 requests)
 - ✅ Verified massive speedup (29.95x vs Ollama)
-- Next: Fix missing endpoints (/api/ps, /api/show, /api/version)
+- ✅ Fixed all missing endpoints (/api/ps, /api/show, /api/version)
+- All core Ollama endpoints now functional!
 
 ## Blockers
 
-None - ready for endpoint implementation
+None - all 0.0.x development targets achieved!
