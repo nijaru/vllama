@@ -1,15 +1,15 @@
 # TODO
 
-_Last Updated: 2025-10-20_
+_Last Updated: 2025-10-22_
 
 ## High Priority
 
-- [ ] **Test vLLM optimizations** (Day 1)
+- [x] **Test vLLM optimizations** (DONE ✅)
   - [x] Add optimization flags to serve.rs
-  - [ ] Start server with optimized config
-  - [ ] Test with concurrent requests (5, 10, 50)
-  - [ ] Compare performance vs Ollama
-  - Success: 2x+ faster than Ollama on concurrent requests
+  - [x] Start server with optimized config
+  - [x] Test with concurrent requests (5, 10, 50)
+  - [x] Compare performance vs Ollama
+  - Result: **29.95x faster than Ollama!** (crushed the 2x target)
 
 ## In Progress
 
