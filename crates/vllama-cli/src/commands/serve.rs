@@ -124,9 +124,6 @@ fn start_vllm_server(
             &max_num_seqs.to_string(),
             "--max-num-batched-tokens",
             "16384", // 32x increase from default (512) for better throughput
-            // Context length
-            "--max-model-len",
-            "4096", // Typical context length for most workloads
             // Performance optimizations
             "--enable-chunked-prefill", // Better concurrent request handling
             "--enable-prefix-caching",  // Reuse KV cache for repeated prompts
