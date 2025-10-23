@@ -6,11 +6,13 @@ Drop-in replacement for Ollama with 10x+ faster GPU inference.
 
 ## Why vLLama?
 
-- 🚀 **10x faster** - GPU-accelerated inference via vLLM (NVIDIA GPUs)
-- 🔌 **Drop-in compatible** - Same API as Ollama (port 11434)
-- 🎯 **Performance-focused** - Optimized for throughput, not feature parity
+- 🚀 **4.4x faster** - GPU-accelerated inference via vLLM (NVIDIA GPUs, sequential workloads)
+- 🔌 **Ollama-compatible** - Same API as Ollama (port 11434)
+- 🎯 **Performance-focused** - Optimized for throughput with official vLLM server
 - 🔧 **Easy setup** - One command to start
-- 🍎 **Cross-platform** - Works on Linux, macOS (including Apple Silicon)
+- 🍎 **Cross-platform ready** - Linux + NVIDIA production, macOS dev support planned
+
+**Current Status:** 0.0.x development - See [ai/STATUS.md](ai/STATUS.md) for progress
 
 ## Platform Support
 
@@ -188,27 +190,25 @@ cargo fmt
 
 ## Documentation
 
-- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Current phase, roadmap, and feature status
-- **[BENCHMARKS.md](BENCHMARKS.md)** - Performance testing methodology and templates
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment (systemd, Docker, security)
-- **[FEDORA_SETUP.md](FEDORA_SETUP.md)** - Fedora + NVIDIA GPU setup guide
+**User Documentation:**
+- [docs/BENCHMARKS.md](docs/BENCHMARKS.md) - Benchmarking guide
+- [docs/FEDORA_SETUP.md](docs/FEDORA_SETUP.md) - Fedora installation guide
 
-## Project Status
-
-See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed roadmap and current phase.
-
-**Current:** Phase 2 Complete ✅
-**Next:** Phase 3 - Performance Optimization & Production Readiness
+**Development Context (AI-optimized):**
+- [ai/STATUS.md](ai/STATUS.md) - Current project state
+- [ai/TODO.md](ai/TODO.md) - Active tasks and priorities
+- [ai/DECISIONS.md](ai/DECISIONS.md) - Architectural decisions
+- [ai/RESEARCH.md](ai/RESEARCH.md) - Research findings index
 
 ## Contributing
 
-Current Phase 3 focus areas:
-1. Run benchmarks on real hardware (see [BENCHMARKS.md](BENCHMARKS.md))
-2. Request batching and optimization
-3. Multi-GPU support (vLLM tensor parallelism)
-4. Documentation and examples
+**Current focus (0.0.x development):**
+1. Fix concurrent performance (currently 1.16x slower than Ollama)
+2. Complete core Ollama endpoints (/api/ps, /api/show, /api/version)
+3. Comprehensive benchmarking
+4. macOS support (llama.cpp integration)
 
-See [PROJECT_STATUS.md](PROJECT_STATUS.md) for complete priority list.
+See [ai/TODO.md](ai/TODO.md) and [ai/STATUS.md](ai/STATUS.md) for details.
 
 ## License
 
