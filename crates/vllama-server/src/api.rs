@@ -452,44 +452,97 @@ pub async fn pull(
 }
 
 pub async fn show(
-    State(state): State<ServerState>,
+    State(_state): State<ServerState>,
     Json(req): Json<ShowApiRequest>,
 ) -> Response {
     info!("Show request for model: {}", req.model);
 
-    if !state.loaded_models.contains_key(&req.model) {
+    #[derive(Debug, Deserialize)]
+    struct VllmModelsResponse {
+        data: Vec<VllmModelInfo>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct VllmModelInfo {
+        id: String,
+        #[serde(default)]
+        #[allow(dead_code)]
+        max_model_len: Option<u64>,
+    }
+
+    let client = reqwest::Client::new();
+    let models_response = match client.get("http://127.0.0.1:8100/v1/models").send().await {
+        Ok(response) => match response.json::<VllmModelsResponse>().await {
+            Ok(data) => data,
+            Err(e) => {
+                error!("Failed to parse vLLM models response: {}", e);
+                return (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
+                    "error": "Failed to query vLLM server"
+                }))).into_response();
+            }
+        },
+        Err(e) => {
+            error!("Failed to query vLLM models: {}", e);
+            return (StatusCode::SERVICE_UNAVAILABLE, Json(serde_json::json!({
+                "error": "vLLM server not available"
+            }))).into_response();
+        }
+    };
+
+    let model_info = models_response.data.iter().find(|m| m.id == req.model);
+    if model_info.is_none() {
         return (StatusCode::NOT_FOUND, Json(serde_json::json!({
-            "error": format!("Model '{}' not found. Load it first by making a generate or chat request.", req.model)
+            "error": format!("Model '{}' not found in vLLM server", req.model)
         }))).into_response();
     }
 
     let model_name = &req.model;
 
-    let (family, parameter_size, format) = if model_name.contains("Llama") || model_name.contains("llama") {
-        let size = if model_name.contains("70B") {
+    let (family, parameter_size) = if model_name.contains("llama") || model_name.contains("Llama") {
+        let size = if model_name.contains("70B") || model_name.contains("70b") {
             "70B"
-        } else if model_name.contains("8B") {
+        } else if model_name.contains("8B") || model_name.contains("8b") {
             "8B"
-        } else if model_name.contains("3B") {
+        } else if model_name.contains("3B") || model_name.contains("3b") {
             "3B"
+        } else if model_name.contains("1B") || model_name.contains("1b") {
+            "1B"
         } else {
             "unknown"
         };
-        ("llama", size, "gguf")
+        ("llama", size)
+    } else if model_name.contains("opt") {
+        let size = if model_name.contains("125m") {
+            "125M"
+        } else if model_name.contains("350m") {
+            "350M"
+        } else {
+            "unknown"
+        };
+        ("opt", size)
+    } else if model_name.contains("qwen") || model_name.contains("Qwen") {
+        let size = if model_name.contains("1.5B") || model_name.contains("1.5b") {
+            "1.5B"
+        } else if model_name.contains("7B") || model_name.contains("7b") {
+            "7B"
+        } else {
+            "unknown"
+        };
+        ("qwen", size)
     } else {
-        ("unknown", "unknown", "gguf")
+        ("unknown", "unknown")
     };
 
     let response = ShowApiResponse {
-        modelfile: format!("# Modelfile for {}\n# Loaded via vLLama", model_name),
+        modelfile: format!("# Modelfile for {}\n# Loaded via vLLama + vLLM", model_name),
         parameters: "temperature 0.7\ntop_p 0.9\nrepetition_penalty 1.0".to_string(),
         template: Some("{{ .System }}\n{{ .Prompt }}".to_string()),
         details: ModelDetails {
             parent_model: model_name.clone(),
-            format: format.to_string(),
+            format: "safetensors".to_string(),
             family: family.to_string(),
             parameter_size: parameter_size.to_string(),
-            quantization_level: "Q4_K_M".to_string(),
+            quantization_level: "none".to_string(),
         },
     };
 
@@ -757,6 +810,18 @@ pub async fn chat(
 
 
 #[derive(Debug, Serialize)]
+pub struct VersionResponse {
+    pub version: String,
+}
+
+pub async fn version() -> Json<VersionResponse> {
+    info!("Version request");
+    Json(VersionResponse {
+        version: env!("CARGO_PKG_VERSION").to_string(),
+    })
+}
+
+#[derive(Debug, Serialize)]
 pub struct ProcessInfo {
     pub name: String,
     pub model: String,
@@ -778,7 +843,80 @@ pub struct PsResponse {
 pub async fn ps(State(_state): State<ServerState>) -> Response {
     info!("Process status request");
 
-    // vLLM OpenAI server manages models internally
-    // Model state not exposed via API - return empty list
-    Json(PsResponse { models: vec![] }).into_response()
+    #[derive(Debug, Deserialize)]
+    struct VllmModelsResponse {
+        data: Vec<VllmModelInfo>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct VllmModelInfo {
+        id: String,
+        #[allow(dead_code)]
+        created: u64,
+        #[serde(default)]
+        max_model_len: Option<u64>,
+    }
+
+    let client = reqwest::Client::new();
+    match client.get("http://127.0.0.1:8100/v1/models").send().await {
+        Ok(response) => {
+            match response.json::<VllmModelsResponse>().await {
+                Ok(vllm_models) => {
+                    let models = vllm_models.data.into_iter().map(|m| {
+                        let model_name = m.id.clone();
+
+                        let (family, parameter_size) = if model_name.contains("llama") || model_name.contains("Llama") {
+                            let size = if model_name.contains("70B") || model_name.contains("70b") {
+                                "70B"
+                            } else if model_name.contains("8B") || model_name.contains("8b") {
+                                "8B"
+                            } else if model_name.contains("3B") || model_name.contains("3b") {
+                                "3B"
+                            } else if model_name.contains("1B") || model_name.contains("1b") {
+                                "1B"
+                            } else {
+                                "unknown"
+                            };
+                            ("llama", size)
+                        } else if model_name.contains("opt") {
+                            let size = if model_name.contains("125m") {
+                                "125M"
+                            } else {
+                                "unknown"
+                            };
+                            ("opt", size)
+                        } else {
+                            ("unknown", "unknown")
+                        };
+
+                        ProcessInfo {
+                            name: model_name.clone(),
+                            model: model_name.clone(),
+                            size: 0,
+                            digest: None,
+                            details: ModelDetails {
+                                parent_model: model_name,
+                                format: "safetensors".to_string(),
+                                family: family.to_string(),
+                                parameter_size: parameter_size.to_string(),
+                                quantization_level: "none".to_string(),
+                            },
+                            expires_at: None,
+                            size_vram: m.max_model_len,
+                        }
+                    }).collect();
+
+                    Json(PsResponse { models }).into_response()
+                }
+                Err(e) => {
+                    error!("Failed to parse vLLM models response: {}", e);
+                    Json(PsResponse { models: vec![] }).into_response()
+                }
+            }
+        }
+        Err(e) => {
+            error!("Failed to query vLLM models: {}", e);
+            Json(PsResponse { models: vec![] }).into_response()
+        }
+    }
 }

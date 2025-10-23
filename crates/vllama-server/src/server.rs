@@ -34,6 +34,7 @@ impl Server {
             .route("/api/show", post(api::show))
             .route("/api/tags", get(api::tags))
             .route("/api/ps", get(api::ps))
+            .route("/api/version", get(api::version))
             .route("/v1/chat/completions", post(api::openai_chat_completions))
             .route("/health", get(api::health))
             .layer(CorsLayer::permissive())
