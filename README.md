@@ -194,6 +194,7 @@ cargo fmt
 **User Documentation:**
 - [docs/BENCHMARKS.md](docs/BENCHMARKS.md) - Benchmarking guide
 - [docs/FEDORA_SETUP.md](docs/FEDORA_SETUP.md) - Fedora installation guide
+- [docs/TESTING.md](docs/TESTING.md) - Testing guide
 
 **Development Context (AI-optimized):**
 - [ai/STATUS.md](ai/STATUS.md) - Current project state
