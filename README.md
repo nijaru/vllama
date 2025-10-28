@@ -51,11 +51,11 @@ cargo build --release
 
 ```bash
 # One command - auto-starts vLLM OpenAI server
-cargo run --release --bin vllama -- serve --model meta-llama/Llama-3.2-1B-Instruct
+cargo run --release --bin vllama -- serve --model Qwen/Qwen2.5-1.5B-Instruct
 
-# Or use custom settings
+# Or use 7B model with custom settings
 cargo run --release --bin vllama -- serve \
-  --model meta-llama/Llama-3.1-8B-Instruct \
+  --model Qwen/Qwen2.5-7B-Instruct \
   --port 11434 \
   --vllm-port 8100 \
   --max-num-seqs 256 \
@@ -69,7 +69,7 @@ cargo run --release --bin vllama -- serve \
 curl -X POST http://localhost:11434/api/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "meta-llama/Llama-3.1-8B-Instruct",
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
     "prompt": "Explain quantum computing in one sentence.",
     "stream": false
   }'
@@ -78,7 +78,7 @@ curl -X POST http://localhost:11434/api/generate \
 curl -X POST http://localhost:11434/api/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "meta-llama/Llama-3.1-8B-Instruct",
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
     "prompt": "Write a haiku about coding.",
     "stream": true
   }'
@@ -86,10 +86,14 @@ curl -X POST http://localhost:11434/api/generate \
 
 ## Performance
 
-**RTX 4090 (Llama-3.1-8B-Instruct):**
-- Throughput: High-performance inference via vLLM
+**RTX 4090 Performance:**
+- **Sequential:** 232ms (4.4x faster than Ollama)
+- **Concurrent (5):** 0.217s (29.95x faster than Ollama)
+- **Concurrent (50):** 2.115s (23.6 req/s throughput)
 - Optimized for GPU acceleration with PagedAttention
 - Efficient memory management
+
+See [docs/MODELS.md](docs/MODELS.md) for per-model performance characteristics.
 
 **Benchmarking:**
 Use `vllama bench` to compare vLLama vs Ollama on your hardware.
@@ -118,12 +122,16 @@ See [BENCHMARKS.md](BENCHMARKS.md) for detailed setup, methodology, and result t
 
 ## Supported Models
 
-Any HuggingFace model compatible with vLLM:
-- `meta-llama/Llama-3.1-8B-Instruct`
-- `meta-llama/Llama-3.1-70B-Instruct`
-- Other models supported by vLLM
+See [docs/MODELS.md](docs/MODELS.md) for full compatibility matrix and hardware requirements.
 
-Models auto-download on first request.
+**Tested & Working:**
+- **Qwen 2.5** (0.5B, 1.5B, 7B) - Best for testing, open access
+- **Mistral 7B v0.3** - Great for coding/chat
+
+**Requires Authentication:**
+- **Meta Llama models** - See [docs/MODELS.md](docs/MODELS.md) for setup
+
+Models auto-download on first request. Any HuggingFace model compatible with vLLM should work.
 
 ## Architecture
 
@@ -181,7 +189,7 @@ OLLAMA_HOST=127.0.0.1:11435 ollama serve
 
 # Terminal 2: Run benchmark
 cargo run --release --bin vllama -- bench \
-  "meta-llama/Llama-3.1-8B-Instruct" \
+  "Qwen/Qwen2.5-1.5B-Instruct" \
   "Test prompt" \
   -i 10
 ```
@@ -194,6 +202,7 @@ cargo fmt
 ## Documentation
 
 **User Documentation:**
+- [docs/MODELS.md](docs/MODELS.md) - Model compatibility and requirements
 - [docs/BENCHMARKS.md](docs/BENCHMARKS.md) - Benchmarking guide
 - [docs/FEDORA_SETUP.md](docs/FEDORA_SETUP.md) - Fedora installation guide
 - [docs/TESTING.md](docs/TESTING.md) - Testing guide
@@ -207,7 +216,7 @@ cargo fmt
 ## Contributing
 
 **Current focus (0.0.x development):**
-- 🎯 Model validation (Llama 3.x, Qwen 2.5, Mistral)
+- ✅ Model validation (Qwen 2.5, Mistral tested - see docs/MODELS.md)
 - 🎯 Production polish (errors, CLI, monitoring)
 - 🎯 Performance documentation
 - 🎯 First production user
