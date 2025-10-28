@@ -138,3 +138,46 @@ _Architectural decisions and their rationale_
 - But more reliable, better scaling, proven in production
 
 ---
+## 2025-10-22: Focus on Linux Production, Defer macOS
+
+**Context:** Deciding whether to add macOS support (llama.cpp) now or later
+
+**Decision:** Focus exclusively on Linux + NVIDIA in 0.0.x, defer macOS
+
+**Rationale:**
+
+**Why Linux-first:**
+- vLLM 29.95x faster than Ollama on concurrent (sustainable advantage)
+- Architectural superiority on NVIDIA GPUs (won't be matched)
+- Target market: production deployments (all Linux + NVIDIA)
+- Haven't even validated popular models yet (Llama 3.x, Qwen, Mistral)
+
+**Why defer macOS:**
+- Would use llama.cpp (same as Ollama)
+- llama.cpp is performance ceiling for both us and Ollama
+- Best case: 10-20% faster single request, 2-5x concurrent (modest)
+- Ollama already works great on macOS
+- Opportunity cost too high (time not on Linux dominance)
+- 2 engines = 2x complexity (vLLM + llama.cpp, HF + GGUF)
+
+**Positioning:**
+- vLLama: Production Linux deployments
+- Ollama: macOS/hobbyists/developers
+- Different markets, different tools
+- Don't try to be everything to everyone
+
+**When to reconsider macOS:**
+- After 0.0.7 (first production user on Linux)
+- After proving Linux market exists
+- After user feedback shows demand
+- Maybe 0.1.0 or later
+
+**Tradeoffs:**
+- ❌ Not cross-platform (Linux-only for now)
+- ✅ Focused, better Linux DX
+- ✅ Simpler architecture (one engine)
+- ✅ Sustainable competitive advantage
+
+**Source:** See ai/REALISTIC_NEXT_STEPS.md
+
+---

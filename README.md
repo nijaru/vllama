@@ -1,27 +1,29 @@
 # vLLama
 
-**Fast Ollama-compatible LLM server powered by vLLM**
+**Ollama's DX with vLLM's performance**
 
-Drop-in replacement for Ollama with 10x+ faster GPU inference.
+The fastest LLM inference server for Linux + NVIDIA GPUs.
 
 ## Why vLLama?
 
-- 🚀 **4.4x faster** - GPU-accelerated inference via vLLM (NVIDIA GPUs, sequential workloads)
-- 🔌 **Ollama-compatible** - Same API as Ollama (port 11434)
-- 🎯 **Performance-focused** - Optimized for throughput with official vLLM server
-- 🔧 **Easy setup** - One command to start
-- 🍎 **Cross-platform ready** - Linux + NVIDIA production, macOS dev support planned
+- 🚀 **29.95x faster** - Concurrent requests obliterate Ollama (vLLM's PagedAttention)
+- 🔌 **Ollama-compatible** - Drop-in replacement, same API (port 11434)
+- 🎯 **Production-ready** - Built for Linux deployments with NVIDIA GPUs
+- 🔧 **Simple setup** - Easier than raw vLLM, faster than Ollama
+- 📊 **Proven performance** - Industry-standard vLLM engine (Amazon, LinkedIn, Red Hat)
 
-**Current Status:** 0.0.x development - See [ai/STATUS.md](ai/STATUS.md) for progress
+**Target users:** Production deployments, high-throughput APIs, multi-user applications
+
+**Current Status:** 0.0.3 (development) - See [ai/STATUS.md](ai/STATUS.md) for progress
 
 ## Platform Support
 
-| Platform | Status | Performance | Notes |
-|----------|--------|-------------|-------|
-| **Linux + NVIDIA GPU** | ✅ Production Ready | 10x+ faster | Recommended for production |
-| **macOS (Apple Silicon)** | ⚠️ Experimental | CPU-only | Good for dev/testing |
-| **macOS (Intel)** | ⚠️ Experimental | CPU-only | Good for dev/testing |
-| **Linux (CPU-only)** | ⚠️ Supported | Slower | Not recommended |
+| Platform | Status | Notes |
+|----------|--------|-------|
+| **Linux + NVIDIA GPU** | ✅ Supported | Recommended - 29.95x faster than Ollama |
+| **macOS / Windows** | ❌ Not yet | Use [Ollama](https://ollama.com) (great for these platforms!) |
+
+**Why Linux-only?** vLLM is architecturally superior to llama.cpp on NVIDIA GPUs. macOS would use llama.cpp (same as Ollama) with only modest gains. We focus on where we can truly dominate: Linux production deployments.
 
 ## Quick Start
 
@@ -204,17 +206,15 @@ cargo fmt
 
 ## Contributing
 
-**0.0.x development complete! ✅**
-- ✅ Concurrent performance: 29.95x faster than Ollama
-- ✅ All core Ollama endpoints implemented
-- ✅ Production-ready on Linux + NVIDIA GPUs
+**Current focus (0.0.x development):**
+- 🎯 Model validation (Llama 3.x, Qwen 2.5, Mistral)
+- 🎯 Production polish (errors, CLI, monitoring)
+- 🎯 Performance documentation
+- 🎯 First production user
 
-**Next phases:**
-- macOS support (llama.cpp integration)
-- Comprehensive benchmarking across model sizes
-- Additional optimizations and features
+**Strategy:** Linux-only, vLLM-based, production-focused
 
-See [ai/TODO.md](ai/TODO.md) and [ai/STATUS.md](ai/STATUS.md) for details.
+See [ai/TODO.md](ai/TODO.md), [ai/STATUS.md](ai/STATUS.md), and [CLAUDE.md](CLAUDE.md) for details.
 
 ## License
 

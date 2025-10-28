@@ -4,8 +4,13 @@ _Last Updated: 2025-10-22_
 
 ## Current State
 
-**Version:** 0.0.x Development
-**Focus:** Endpoint completion and production readiness
+**Version:** 0.0.3 (development)
+**Focus:** Linux + NVIDIA production deployments
+
+**Strategy:** "Ollama's DX with vLLM's performance"
+- Target: Production Linux with NVIDIA GPUs
+- NOT targeting: macOS/hobbyists (Ollama great there)
+- NOT targeting: Researchers (use raw vLLM)
 
 **Performance (RTX 4090, 30% GPU utilization):**
 - Sequential: 232ms (4.4x faster than Ollama - Qwen 1.5B) ✅
