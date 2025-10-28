@@ -14,7 +14,7 @@ The fastest LLM inference server for Linux + NVIDIA GPUs.
 
 **Target users:** Production deployments, high-throughput APIs, multi-user applications
 
-**Current Status:** 0.0.3 (development) - See [ai/STATUS.md](ai/STATUS.md) for progress
+**Current Status:** 0.0.4 - Model validation complete - See [ai/STATUS.md](ai/STATUS.md) for details
 
 ## Platform Support
 

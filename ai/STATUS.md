@@ -1,10 +1,10 @@
 # Status
 
-_Last Updated: 2025-10-22_
+_Last Updated: 2025-10-28_
 
 ## Current State
 
-**Version:** 0.0.3 (development)
+**Version:** 0.0.4
 **Focus:** Linux + NVIDIA production deployments
 
 **Strategy:** "Ollama's DX with vLLM's performance"
@@ -61,18 +61,19 @@ _Last Updated: 2025-10-22_
 
 ## Active Work
 
-**Current session:**
-- ✅ Optimized vLLM configuration (serve.rs)
-- ✅ Reorganized docs per agent-contexts standard
-- ✅ Tested concurrent performance (5, 10, 50 requests)
-- ✅ Verified massive speedup (29.95x vs Ollama)
-- ✅ Fixed all missing endpoints (/api/ps, /api/show, /api/version)
-- ✅ Comprehensive testing infrastructure (19 tests total)
-  - 8 integration tests (all endpoints)
-  - 3 performance regression tests
-  - 8 unit tests
-- All core Ollama endpoints functional and tested!
+**0.0.4 Completed:**
+- ✅ Tested popular models (Qwen 2.5: 0.5B, 1.5B, 7B; Mistral 7B)
+- ✅ Created comprehensive docs/MODELS.md
+- ✅ Updated README.md with model references
+- ✅ Documented GPU memory requirements (7B needs 90% utilization)
+- ✅ Documented authentication requirements for Llama models
+
+**Next (0.0.5 - Production Polish):**
+- Error handling improvements
+- CLI enhancements
+- Health monitoring
+- Structured logging
 
 ## Blockers
 
-None - all 0.0.x development targets achieved!
+None
