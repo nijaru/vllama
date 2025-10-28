@@ -181,3 +181,71 @@ _Architectural decisions and their rationale_
 **Source:** See ai/REALISTIC_NEXT_STEPS.md
 
 ---
+
+## 2025-10-28: Recommend Qwen Models for Getting Started
+
+**Context:** Completed model validation, tested Qwen 2.5, Mistral 7B, and Llama models
+
+**Decision:** Recommend Qwen 2.5 models as the default for getting started and examples
+
+**Rationale:**
+- Open access (no HuggingFace authentication required)
+- Multiple sizes available (0.5B, 1.5B, 7B) for different use cases
+- Good instruction following and quality
+- Works immediately without setup friction
+- Llama models require authentication (gated repos)
+- Better onboarding experience for new users
+
+**Implementation:**
+- Updated all README examples to use Qwen models
+- Created docs/MODELS.md with Qwen as primary recommendation
+- Documented Llama as "Requires Authentication" section
+- Default Quick Start uses Qwen 2.5 1.5B
+
+**Tradeoffs:**
+- Llama models more well-known brand
+- But setup friction kills first experience
+- Can still document Llama for users who want it
+
+**Source:** Model validation testing in 0.0.4
+
+---
+
+## 2025-10-28: Require 90% GPU Utilization for 7B Models
+
+**Context:** Qwen 7B and Mistral 7B failed with 50% GPU utilization
+
+**Decision:** Document that 7B models require `--gpu-memory-utilization 0.9` on 24GB GPUs
+
+**Error with 50% GPU util:**
+```
+ValueError: No available memory for the cache blocks
+Available KV cache memory: -4.78 GiB (negative!)
+```
+
+**Analysis:**
+- Model weights: ~13-14 GB (loaded into VRAM)
+- KV cache needs: ~5-7 GB (for concurrent requests)
+- Total required: ~20 GB minimum
+- 50% of 24GB = 12.3 GB (insufficient)
+- 90% of 24GB = 22.1 GB (works!)
+
+**Implementation:**
+- Documented in docs/MODELS.md troubleshooting section
+- Updated CLAUDE.md with critical GPU memory rules
+- Updated examples to use 0.9 for 7B models
+- Added to Quick Start guide
+
+**Rationale:**
+- This is a hard requirement, not a suggestion
+- Prevents confusing error messages for users
+- Small models (0.5-1.5B) still work fine at 50%
+- vLLM needs room for both model weights AND KV cache
+
+**Tradeoffs:**
+- None - this is required for 7B models to work
+- Could auto-detect and adjust, but explicit is better
+
+**Source:** Testing during 0.0.4 model validation
+
+---

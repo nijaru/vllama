@@ -12,16 +12,17 @@ vLLama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA
 
 ## Project Status
 
-**Current:** 0.0.3 (development)
+**Current:** 0.0.4
 - ✅ Core Ollama API endpoints working
 - ✅ 29.95x faster than Ollama on concurrent requests
 - ✅ Comprehensive testing (19 tests)
-- ⚠️ Only tested with tiny models (opt-125m, Qwen 1.5B)
+- ✅ Model validation complete (Qwen 2.5: 0.5B, 1.5B, 7B; Mistral 7B)
+- ✅ docs/MODELS.md with compatibility matrix
 - ❌ No production users yet
 
 **Next:** Stay in 0.0.x until production-ready
-- 0.0.4: Model validation (Llama 3.x, Qwen, Mistral)
-- 0.0.5: Production polish (errors, CLI, monitoring)
+- ✅ 0.0.4: Model validation complete
+- 🎯 0.0.5: Production polish (errors, CLI, monitoring)
 - 0.0.6: Performance docs (benchmarks)
 - 0.0.7: First production user
 
@@ -121,18 +122,39 @@ vllama/
 └── CLAUDE.md            # This file
 ```
 
+## Model Guidelines
+
+**Tested & Working:**
+- Qwen 2.5 (0.5B, 1.5B, 7B) - Best for testing, open access
+- Mistral 7B v0.3 - Great for coding/chat
+- See docs/MODELS.md for full compatibility matrix
+
+**Critical GPU Memory Rules:**
+- **7B models:** MUST use `--gpu-memory-utilization 0.9` (not 0.5)
+- **Small models (0.5-1.5B):** Can use 0.5 GPU utilization
+- **24GB GPU (RTX 4090):** Can run any 7B model at 90% util
+- **Failure symptom:** "No available memory for cache blocks" = need higher GPU util
+
+**Model Recommendations:**
+- Quick testing: Qwen 2.5 0.5B or 1.5B (fast, small)
+- Production: Qwen 2.5 7B or Mistral 7B (quality)
+- Auth required: Llama models (need HuggingFace token)
+
 ## Common Tasks
 
 ### Testing New Model
 ```bash
-# Start server
-cargo run --release -- serve --model <model-name>
+# Start server (7B models need 0.9 GPU utilization!)
+cargo run --release -- serve --model <model-name> --gpu-memory-utilization 0.9
 
 # Test generation
 curl -X POST localhost:11434/api/generate \
-  -d '{"model":"<model>","prompt":"Hello","stream":false}'
+  -d '{"model":"<model>","prompt":"What is 2+2?","stream":false}'
 
-# Document in docs/MODELS.md
+# Document in docs/MODELS.md with:
+# - Model size, GPU util, load time, VRAM usage
+# - KV cache size and max concurrency
+# - Any special requirements or issues
 ```
 
 ### Adding Endpoint
