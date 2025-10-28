@@ -2,161 +2,145 @@
 
 _Last Updated: 2025-10-22_
 
-## Completed 0.0.x Development ✅
+## Completed So Far ✅
 
 - [x] vLLM optimization (29.95x faster than Ollama on concurrent)
 - [x] All core Ollama endpoints (/api/generate, /api/chat, /api/ps, /api/show, /api/version)
 - [x] Comprehensive testing (19 tests: 8 integration + 3 performance + 8 unit)
-- [x] Documentation (TESTING.md, COMPETITIVE_STRATEGY.md)
+- [x] Documentation (TESTING.md, COMPETITIVE_STRATEGY.md, REALISTIC_NEXT_STEPS.md)
+
+**Current version:** 0.0.3 (development)
 
 ---
 
-## 0.1.0 - Linux Production Readiness (Target: 4 weeks)
+## 0.0.4 - Model Validation (This Week)
 
-### Week 1: Model Support & Validation
-- [ ] **Test popular models**
-  - [ ] Llama 3.1 8B (most popular)
-  - [ ] Llama 3.2 1B, 3B
-  - [ ] Qwen 2.5 1.5B, 7B
-  - [ ] Mistral 7B v0.3
-  - [ ] DeepSeek Coder 6.7B
-- [ ] **Document compatibility matrix**
-  - [ ] Which models work
-  - [ ] Performance benchmarks
-  - [ ] Memory requirements
-  - [ ] Known issues
+**Goal:** Verify vLLama works with popular models (not just opt-125m)
 
-### Week 2: Missing Features
-- [ ] **/api/delete endpoint**
-  - [ ] Delete model from disk
-  - [ ] Update loaded_models state
-  - [ ] Tests
-- [ ] **/api/copy endpoint**
-  - [ ] Copy model with new name
-  - [ ] Update model registry
-  - [ ] Tests
-- [ ] **Better error messages**
-  - [ ] User-friendly error responses
-  - [ ] Helpful suggestions (e.g., "Try vllama pull <model>")
-  - [ ] Error codes
+### Test Popular Models
+- [ ] **Llama 3.1 8B** - most popular open model
+- [ ] **Llama 3.2 1B** - newer, smaller
+- [ ] **Llama 3.2 3B** - newer, medium
+- [ ] **Qwen 2.5 7B** - already tested 1.5B
+- [ ] **Mistral 7B v0.3** - popular for coding/chat
 
-### Week 3: Performance Validation
-- [ ] **Benchmark all supported models**
-  - [ ] Sequential performance
-  - [ ] Concurrent performance (5, 10, 50 requests)
-  - [ ] Memory usage
-  - [ ] GPU utilization
-- [ ] **Document vs Ollama**
-  - [ ] Performance comparison table
-  - [ ] When to use vLLama vs Ollama
-  - [ ] Create docs/PERFORMANCE.md
+### Documentation
+- [ ] Create docs/MODELS.md
+  - Compatibility matrix (which models work)
+  - Memory requirements per model
+  - Performance data (tokens/sec)
+  - Known issues/limitations
+- [ ] Update README with model support section
 
-### Week 4: User Experience
-- [ ] **CLI improvements**
-  - [ ] Better help messages
-  - [ ] Model preloading flag (--preload)
-  - [ ] Startup progress indicators
-  - [ ] Colored output
-- [ ] **Health monitoring**
-  - [ ] /health includes model status
-  - [ ] /health includes GPU status
-  - [ ] /metrics endpoint (Prometheus format)
+**Tag:** v0.0.4 when done
 
 ---
 
-## 0.2.0 - Advanced Features (Target: 4 weeks)
+## 0.0.5 - Production Polish (Next Week)
 
-### Embeddings (RAG Support)
-- [ ] /api/embeddings endpoint
-- [ ] vLLM embeddings model support
-- [ ] Test with sentence-transformers models
-- [ ] Documentation
+**Goal:** Make it production-ready
 
-### Multi-Modal (Vision)
-- [ ] Vision model support (LLaVA, Qwen-VL)
-- [ ] Image input handling (/api/generate with images)
-- [ ] Test with popular vision models
-- [ ] Documentation
+### Error Handling
+- [ ] User-friendly error messages
+- [ ] Helpful suggestions (e.g., "Try: vllama pull <model>")
+- [ ] Don't leak internal errors
+- [ ] Consistent error format
 
-### Observability
-- [ ] Prometheus metrics endpoint
-- [ ] Request tracing (OpenTelemetry)
-- [ ] GPU utilization metrics
-- [ ] Dashboard examples (Grafana)
+### CLI Improvements
+- [ ] Better help text
+- [ ] Colored output (errors in red, success in green)
+- [ ] Progress indicators for downloads
+- [ ] Model preload flag (--preload)
 
----
+### Monitoring
+- [ ] /health endpoint improvements
+  - Show loaded models
+  - Show GPU status
+  - Show memory usage
+- [ ] /metrics endpoint (Prometheus format)
+  - Request counts
+  - Latencies
+  - GPU utilization
+- [ ] Structured logging (JSON)
+  - Request IDs
+  - Performance metrics
 
-## 0.3.0 - macOS Parity (Target: 5 weeks)
-
-### llama.cpp Integration
-- [ ] **Research Rust bindings**
-  - [ ] Evaluate llama-cpp-rs
-  - [ ] Test Metal backend
-  - [ ] Benchmark raw performance
-- [ ] **Implement llama.cpp engine**
-  - [ ] LlamaCppEngine struct
-  - [ ] GGUF model loading
-  - [ ] Metal acceleration
-  - [ ] Unified InferenceEngine trait
-- [ ] **Platform detection**
-  - [ ] Auto-detect macOS + Apple Silicon
-  - [ ] Switch engine at runtime
-  - [ ] No user configuration needed
-
-### GGUF Model Management
-- [ ] Download GGUF models from HuggingFace
-- [ ] Model quantization selection (Q4_K_M, Q5_K_M, etc.)
-- [ ] Convert safetensors → GGUF (optional)
-
-### Testing & Benchmarking
-- [ ] Test on M1/M2/M3 hardware
-- [ ] Benchmark vs Ollama
-- [ ] Target: match or beat Ollama
-- [ ] Document results
+**Tag:** v0.0.5 when done
 
 ---
 
-## 0.4.0 - macOS Dominance (Target: 6 weeks)
+## 0.0.6 - Performance Documentation (Week 3)
 
-### Performance Optimizations
-- [ ] **Model Loading (Target: 2x faster)**
-  - [ ] Memory-mapped file loading
-  - [ ] Parallel GGUF shard loading
-  - [ ] Lazy weight initialization
-- [ ] **Prompt Processing (Target: 5-10x faster)**
-  - [ ] Zero-copy prompt encoding
-  - [ ] Batch prompt processing
-  - [ ] Pre-allocated buffers
-- [ ] **Token Generation (Target: 15% faster)**
-  - [ ] Metal kernel optimization
-  - [ ] KV cache optimization
-  - [ ] Speculative decoding (if supported)
-- [ ] **Concurrent Requests (Target: 50x+ faster)**
-  - [ ] Continuous batching (like vLLM)
-  - [ ] Metal multi-stream support
-  - [ ] Optimized scheduling
+**Goal:** Document the performance advantage
+
+### Benchmarking
+- [ ] Benchmark all tested models
+  - Sequential performance
+  - Concurrent (5, 10, 50 requests)
+  - Memory usage per concurrency level
+  - GPU utilization
+- [ ] Create docs/PERFORMANCE.md
+  - Performance vs Ollama comparison table
+  - When to use vLLama (production, high throughput)
+  - When to use Ollama (hobbyist, macOS)
+  - Hardware recommendations
+
+### Update README
+- [ ] Performance claims with evidence
+- [ ] Link to benchmarks
+- [ ] Clear positioning: "Linux + NVIDIA production deployments"
+
+**Tag:** v0.0.6 when done
 
 ---
 
-## Backlog / Future
+## 0.0.7 - First Production User (Week 4)
 
-### Quantization
-- [ ] Research vLLM quantization support
-- [ ] GPTQ/AWQ if feasible
-- [ ] Document trade-offs
+**Goal:** Get someone using this in production
 
-### Multi-GPU
-- [ ] Tensor parallelism
-- [ ] Pipeline parallelism
-- [ ] Test on 2x, 4x GPU setups
+### Deployment Guide
+- [ ] Docker setup
+- [ ] Systemd service file
+- [ ] Reverse proxy (nginx/caddy examples)
+- [ ] Monitoring setup (Prometheus + Grafana)
 
-### Streaming Tests
-- [ ] Integration tests for streaming endpoints
-- [ ] SSE parsing validation
-- [ ] Error handling in streams
+### Security
+- [ ] Input validation review
+- [ ] Rate limiting example
+- [ ] Document auth (how to add it)
 
-### CI/CD
-- [ ] GitHub Actions workflow
-- [ ] Automated testing on PR
-- [ ] Performance regression detection
-- [ ] Release automation
+### Promotion
+- [ ] Share on r/LocalLLaMA
+- [ ] Share on r/rust
+- [ ] Share on Hacker News
+- [ ] Position: "vLLM for Ollama users on Linux"
+
+**Success:** 1+ production deployment, real user feedback
+
+**Tag:** v0.0.7 when done
+
+---
+
+## Future (After 0.0.7)
+
+### When to Consider 0.1.0
+- ✅ 5+ models tested and working
+- ✅ Production deployment guide
+- ✅ 1+ real production user
+- ✅ Performance fully documented
+- ✅ No critical bugs
+
+### What NOT to Do Yet
+- ❌ macOS support (see REALISTIC_NEXT_STEPS.md for rationale)
+- ❌ Multi-modal (vision)
+- ❌ Embeddings (RAG)
+- ❌ Quantization
+- ❌ Multi-GPU
+
+### Maybe Later (User-Driven)
+- [ ] /api/delete endpoint (if users request it)
+- [ ] /api/copy endpoint (if users request it)
+- [ ] Embeddings (if RAG users appear)
+- [ ] Streaming tests (if streaming breaks)
+
+**Strategy:** Stay focused on Linux + NVIDIA production deployments. Let user feedback drive features.
