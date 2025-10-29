@@ -82,17 +82,30 @@ _Last Updated: 2025-10-29_
 - ✅ Structured JSON logging (VLLAMA_LOG_FORMAT=json)
 - ✅ Request tracking (UUIDs, latency, status codes)
 
+**0.0.5.5 (Model Management & Config) - In Progress:**
+- ✅ Model management improvements (4b89145)
+  - vllama pull: Modern progress bars, output modes (normal/quiet/json)
+  - vllama list: Show cached models with sizes and paths
+  - vllama rm: Delete models with size tracking
+  - All commands support --quiet and --json flags
+- ✅ Config file support (00f2846)
+  - TOML config files: ~/.config/vllama/config.toml or ./vllama.toml
+  - Config precedence: CLI flags > ./vllama.toml > ~/.config/vllama/config.toml > defaults
+  - vllama config: Generate example config
+  - vllama config --show: Display current loaded config
+  - Server, model, logging, output settings
+
 **Competitive Analysis:**
 - Positioning: "Ollama's DX with vLLM's performance"
 - Moat: 20-30x faster concurrent (PagedAttention), production focus
 - Target: Linux production deployments, high-throughput APIs, observability
 - NOT competing: Cross-platform, GUI, beginner ease
 
-**Next (0.0.6 - Validation):**
+**Next (0.0.6 - Performance Documentation):**
 - Benchmark tested models properly (not just tiny models)
 - Document realistic performance (when it wins, when it doesn't)
-- Get 1-2 people to actually try it
-- Fix bugs they find
+- Performance comparison table vs Ollama
+- Hardware recommendations
 - Stay in 0.0.x until proven in real use
 
 ## Blockers
