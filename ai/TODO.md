@@ -154,26 +154,39 @@ _Last Updated: 2025-10-29_
 
 ---
 
-## Future (After 0.0.7)
+## Future - Stay in 0.0.x Territory
 
-### When to Consider 0.1.0
-- ✅ 5+ models tested and working
-- ✅ Production deployment guide
-- ✅ 1+ real production user
-- ✅ Performance fully documented
-- ✅ No critical bugs
+### Don't Jump to 0.1.0 Until:
+- Multiple real users (not just me testing)
+- Proven in actual deployments for weeks/months
+- Bugs found and fixed through real use
+- Clear evidence it's useful (not just benchmarketing)
+- Community validation
+
+### 0.0.8, 0.0.9, 0.0.10...
+**Stay in 0.0.x as long as needed. Incremental improvements:**
+- Fix bugs found by users
+- Performance tuning based on real workloads
+- Documentation improvements
+- Small UX improvements
+- More model testing
 
 ### What NOT to Do Yet
-- ❌ macOS support (see REALISTIC_NEXT_STEPS.md for rationale)
+- ❌ macOS support (see REALISTIC_NEXT_STEPS.md)
 - ❌ Multi-modal (vision)
 - ❌ Embeddings (RAG)
 - ❌ Quantization
 - ❌ Multi-GPU
+- ❌ Complex features before proving basics
 
 ### Maybe Later (User-Driven)
-- [ ] /api/delete endpoint (if users request it)
-- [ ] /api/copy endpoint (if users request it)
-- [ ] Embeddings (if RAG users appear)
-- [ ] Streaming tests (if streaming breaks)
+- [ ] Model management (pull, list, rm) if users need it
+- [ ] Config file if users ask for it
+- [ ] Additional features ONLY if real users request them
 
-**Strategy:** Stay focused on Linux + NVIDIA production deployments. Let user feedback drive features.
+**Philosophy:**
+- Stay experimental until proven
+- Let real usage drive priorities
+- Don't over-engineer without validation
+- Focus on incremental improvements
+- 0.0.x is fine for a long time

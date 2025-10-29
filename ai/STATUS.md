@@ -4,13 +4,16 @@ _Last Updated: 2025-10-29_
 
 ## Current State
 
-**Version:** 0.0.5
-**Focus:** Linux + NVIDIA production deployments
+**Version:** 0.0.5 (experimental)
+**Focus:** Linux + NVIDIA GPU deployments (experimental)
+
+**Reality Check:** Still in 0.0.x - extremely experimental until real-world proven
 
 **Strategy:** "Ollama's DX with vLLM's performance"
-- Target: Production Linux with NVIDIA GPUs
+- Target: Production Linux with NVIDIA GPUs (when proven)
 - NOT targeting: macOS/hobbyists (Ollama great there)
 - NOT targeting: Researchers (use raw vLLM)
+- NOT claiming: Production-ready (needs real users first)
 
 **Performance (RTX 4090, 30% GPU utilization):**
 - Sequential: 232ms (4.4x faster than Ollama - Qwen 1.5B) ✅
@@ -85,11 +88,12 @@ _Last Updated: 2025-10-29_
 - Target: Linux production deployments, high-throughput APIs, observability
 - NOT competing: Cross-platform, GUI, beginner ease
 
-**Next (0.0.6 - Performance Documentation):**
-- Benchmark tested models (Qwen, Mistral)
-- Document when vllama wins vs Ollama
-- Create docs/PERFORMANCE.md
-- Prove the 20-30x performance claims
+**Next (0.0.6 - Validation):**
+- Benchmark tested models properly (not just tiny models)
+- Document realistic performance (when it wins, when it doesn't)
+- Get 1-2 people to actually try it
+- Fix bugs they find
+- Stay in 0.0.x until proven in real use
 
 ## Blockers
 

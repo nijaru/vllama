@@ -12,19 +12,23 @@ vllama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA
 
 ## Project Status
 
-**Current:** 0.0.4
+**Current:** 0.0.5 (experimental - NOT production-ready)
 - ✅ Core Ollama API endpoints working
-- ✅ 29.95x faster than Ollama on concurrent requests
+- ✅ 29.95x faster than Ollama on concurrent requests (small models)
 - ✅ Comprehensive testing (19 tests)
-- ✅ Model validation complete (Qwen 2.5: 0.5B, 1.5B, 7B; Mistral 7B)
-- ✅ docs/MODELS.md with compatibility matrix
-- ❌ No production users yet
+- ✅ Model validation (Qwen 2.5: 0.5B, 1.5B, 7B; Mistral 7B)
+- ✅ Modern CLI UX, error handling, monitoring
+- ❌ NO real production users yet
+- ❌ NOT validated in real use
 
-**Next:** Stay in 0.0.x until production-ready
-- ✅ 0.0.4: Model validation complete
-- 🎯 0.0.5: Production polish (errors, CLI, monitoring)
-- 0.0.6: Performance docs (benchmarks)
-- 0.0.7: First production user
+**Reality:** Stay in 0.0.x for a LONG time - extremely experimental
+
+**Next:** Incremental validation
+- ✅ 0.0.5: CLI polish complete
+- 0.0.6: Honest benchmarks, find real users
+- 0.0.7+: Fix bugs, iterate based on feedback
+- 0.0.x: Stay here until proven in real use
+- Don't jump to 0.1.0 prematurely
 
 ## Architecture
 
@@ -65,14 +69,17 @@ vllama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA
 - Document in ai/research/ with methodology
 - Update ai/STATUS.md with results
 
-### Versioning (Stay in 0.0.x)
-- 0.0.x = development, breaking changes OK
-- Tag each milestone (0.0.4, 0.0.5, etc.)
-- Don't jump to 0.1.0 until:
-  - 5+ popular models validated
-  - 1+ production user
-  - Performance fully documented
-  - No critical bugs
+### Versioning (Stay in 0.0.x for a LONG time)
+- 0.0.x = experimental, breaking changes expected
+- Tag each small milestone (0.0.5, 0.0.6, 0.0.7...)
+- Incremental improvements, not big jumps
+- **Don't jump to 0.1.0 until:**
+  - Multiple real users (not just me)
+  - Weeks/months of real usage
+  - Bugs found and fixed through actual use
+  - Clear evidence of value (not just benchmarks)
+  - Community validation
+- **Expect to stay in 0.0.x for months**
 
 ### Code Style
 - Follow existing patterns in codebase
