@@ -117,8 +117,11 @@ enum Commands {
         #[arg(help = "Prompt for benchmarking", default_value = "Once upon a time")]
         prompt: String,
 
-        #[arg(short, long, help = "Number of iterations", default_value = "5")]
+        #[arg(short, long, help = "Number of requests", default_value = "10")]
         iterations: usize,
+
+        #[arg(short, long, help = "Concurrent requests (1 = sequential)", default_value = "1")]
+        concurrency: usize,
     },
 
     #[command(about = "Generate example configuration file")]
@@ -233,8 +236,9 @@ async fn run_command(command: Commands, output_mode: OutputMode, config: config:
             model,
             prompt,
             iterations,
+            concurrency,
         } => {
-            bench::execute(model, prompt, iterations).await?;
+            bench::execute(model, prompt, iterations, concurrency, output_mode).await?;
         }
         Commands::Config { show } => {
             if show {
