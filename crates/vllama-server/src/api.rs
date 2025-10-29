@@ -424,7 +424,7 @@ async fn check_vllm_health() -> String {
 async fn get_gpu_info() -> Option<GpuInfo> {
     // Query nvidia-smi for GPU information
     let output = tokio::process::Command::new("nvidia-smi")
-        .args(&[
+        .args([
             "--query-gpu=name,memory.total,memory.used,memory.free,utilization.gpu",
             "--format=csv,noheader,nounits",
         ])
