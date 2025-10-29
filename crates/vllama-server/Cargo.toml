@@ -28,3 +28,4 @@ tokio-stream = { workspace = true }
 dashmap = { workspace = true }
 parking_lot = { workspace = true }
 reqwest = { workspace = true }
+sysinfo = { workspace = true }

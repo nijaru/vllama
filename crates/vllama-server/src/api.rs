@@ -331,8 +331,125 @@ pub async fn tags(State(state): State<ServerState>) -> Json<TagsResponse> {
     Json(TagsResponse { models })
 }
 
-pub async fn health() -> &'static str {
-    "OK"
+/// Health check response with detailed system information
+#[derive(Debug, Serialize)]
+pub struct HealthResponse {
+    /// Overall status
+    pub status: String,
+    /// vLLM server connectivity
+    pub vllm_status: String,
+    /// Loaded models
+    pub models: Vec<String>,
+    /// GPU information (if available)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gpu: Option<GpuInfo>,
+    /// System memory usage
+    pub memory: MemoryInfo,
+    /// Server uptime in seconds
+    pub uptime_seconds: u64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct GpuInfo {
+    pub name: String,
+    pub memory_total_mb: String,
+    pub memory_used_mb: String,
+    pub memory_free_mb: String,
+    pub utilization_percent: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct MemoryInfo {
+    pub total_mb: u64,
+    pub used_mb: u64,
+    pub available_mb: u64,
+}
+
+pub async fn health(State(state): State<ServerState>) -> Json<HealthResponse> {
+    use sysinfo::System;
+
+    // Check vLLM server status
+    let vllm_status = check_vllm_health().await;
+
+    // Get loaded models
+    let models: Vec<String> = state
+        .loaded_models
+        .iter()
+        .map(|entry| entry.key().clone())
+        .collect();
+
+    // Get GPU info via nvidia-smi
+    let gpu = get_gpu_info().await;
+
+    // Get system memory info
+    let mut sys = System::new_all();
+    sys.refresh_memory();
+
+    let memory = MemoryInfo {
+        total_mb: sys.total_memory() / 1024 / 1024,
+        used_mb: sys.used_memory() / 1024 / 1024,
+        available_mb: sys.available_memory() / 1024 / 1024,
+    };
+
+    // Calculate uptime (simplified - just return 0 for now, could be enhanced)
+    let uptime_seconds = 0;
+
+    Json(HealthResponse {
+        status: "ok".to_string(),
+        vllm_status,
+        models,
+        gpu,
+        memory,
+        uptime_seconds,
+    })
+}
+
+async fn check_vllm_health() -> String {
+    // Try to query vLLM health endpoint
+    let client = reqwest::Client::new();
+    match client
+        .get("http://127.0.0.1:8100/health")
+        .timeout(std::time::Duration::from_secs(2))
+        .send()
+        .await
+    {
+        Ok(resp) if resp.status().is_success() => "connected".to_string(),
+        Ok(resp) => format!("error: HTTP {}", resp.status()),
+        Err(e) if e.is_timeout() => "timeout".to_string(),
+        Err(e) if e.is_connect() => "disconnected".to_string(),
+        Err(_) => "error".to_string(),
+    }
+}
+
+async fn get_gpu_info() -> Option<GpuInfo> {
+    // Query nvidia-smi for GPU information
+    let output = tokio::process::Command::new("nvidia-smi")
+        .args(&[
+            "--query-gpu=name,memory.total,memory.used,memory.free,utilization.gpu",
+            "--format=csv,noheader,nounits",
+        ])
+        .output()
+        .await
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let parts: Vec<&str> = stdout.trim().split(',').map(|s| s.trim()).collect();
+
+    if parts.len() >= 5 {
+        Some(GpuInfo {
+            name: parts[0].to_string(),
+            memory_total_mb: parts[1].to_string(),
+            memory_used_mb: parts[2].to_string(),
+            memory_free_mb: parts[3].to_string(),
+            utilization_percent: parts[4].to_string(),
+        })
+    } else {
+        None
+    }
 }
 
 pub async fn pull(
