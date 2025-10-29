@@ -2,6 +2,19 @@
 
 **Comprehensive monitoring setup for production deployments**
 
+## ⚠️ WARNING
+
+**These monitoring configurations have NOT been tested.** They are templates based on industry best practices that require validation.
+
+**Known issues:**
+- Prometheus/Grafana configs untested
+- Dashboard JSON may need updates for actual metrics
+- Scrape targets may need adjustment for your environment
+
+**See [docs/TESTING_DEPLOYMENT.md](TESTING_DEPLOYMENT.md) for testing checklist.**
+
+---
+
 This guide covers observability: metrics, logs, alerts, and dashboards.
 
 ## Table of Contents

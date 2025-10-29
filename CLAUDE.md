@@ -12,23 +12,34 @@ vllama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA
 
 ## Project Status
 
-**Current:** 0.0.5 (experimental - NOT production-ready)
+**Current:** 0.0.7 (experimental - NOT production-ready)
 - ✅ Core Ollama API endpoints working
-- ✅ 29.95x faster than Ollama on concurrent requests (small models)
-- ✅ Comprehensive testing (19 tests)
+- ✅ 29.95x faster than Ollama on concurrent requests (validated benchmarks)
+- ✅ Comprehensive testing (19 tests passing)
 - ✅ Model validation (Qwen 2.5: 0.5B, 1.5B, 7B; Mistral 7B)
 - ✅ Modern CLI UX, error handling, monitoring
+- ✅ Performance documentation (docs/PERFORMANCE.md)
+- ✅ Deployment configs created (Docker, systemd, nginx, monitoring)
+- ⚠️ Deployment configs NOT TESTED (templates only, need validation)
 - ❌ NO real production users yet
 - ❌ NOT validated in real use
 
 **Reality:** Stay in 0.0.x for a LONG time - extremely experimental
 
-**Next:** Incremental validation
+**Deployment Status (0.0.7):**
+- Created comprehensive deployment infrastructure (Docker, systemd, reverse proxy, monitoring)
+- **CRITICAL:** None of these configs have been tested
+- Docker build will fail (missing Python package structure)
+- Configs are industry best-practice templates requiring validation
+- See docs/TESTING_DEPLOYMENT.md for testing checklist
+
+**Next:** Testing & validation (0.0.8)
 - ✅ 0.0.5: CLI polish complete
-- 0.0.6: Honest benchmarks, find real users
-- 0.0.7+: Fix bugs, iterate based on feedback
+- ✅ 0.0.6: Performance documentation complete
+- ✅ 0.0.7: Deployment configs created (untested)
+- 0.0.8: Test deployment configs, fix issues, get user feedback
 - 0.0.x: Stay here until proven in real use
-- Don't jump to 0.1.0 prematurely
+- Don't jump to 0.1.0 until production-proven
 
 ## Architecture
 

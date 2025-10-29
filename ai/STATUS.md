@@ -118,42 +118,65 @@ _Last Updated: 2025-10-29_
 - Target: Linux production deployments, high-throughput APIs, observability
 - NOT competing: Cross-platform, GUI, beginner ease
 
-**0.0.7 (Production Infrastructure) - Complete:**
-- ✅ Docker deployment (a302f51)
+**0.0.7 (Production Infrastructure) - CREATED BUT UNTESTED:**
+
+**⚠️ CRITICAL: These configs have NOT been tested. They are templates based on industry best practices but require validation before production use.**
+
+What was created (a302f51):
+- ⚠️ Docker deployment configs (NOT TESTED)
   - Dockerfile with NVIDIA CUDA support
   - docker-compose.yml with monitoring stack
   - Health checks and automatic restarts
   - Volume mounts for model caching
-- ✅ Systemd service
+- ⚠️ Systemd service (NOT TESTED)
   - deployment/vllama.service for bare-metal
   - Security hardening, automatic restart
   - Proper logging to journald
-- ✅ Reverse proxy configurations
+- ⚠️ Reverse proxy configurations (NOT VALIDATED)
   - Nginx: HTTPS, rate limiting (10 req/s), auth
   - Caddy: Automatic HTTPS, simpler config
-- ✅ Monitoring infrastructure
-  - Prometheus + Grafana setup
+- ⚠️ Monitoring infrastructure (NOT TESTED)
+  - Prometheus + Grafana configs
   - GPU monitoring (NVIDIA DCGM)
   - Alert rules (downtime, latency, OOM)
   - Log aggregation guides (Loki, ELK)
-- ✅ Security documentation
-  - HTTPS/TLS configuration
-  - Authentication (API keys, mTLS, OAuth)
-  - Rate limiting and input validation
-  - Firewall configuration, incident response
-- ✅ Comprehensive deployment guides
+- ✅ Documentation (written, not validated)
   - docs/DEPLOYMENT.md (600+ lines)
   - docs/MONITORING.md (400+ lines)
   - docs/SECURITY.md (500+ lines)
+  - docs/TESTING_DEPLOYMENT.md (comprehensive testing guide)
 
-**Next (0.0.8 - Ready for Users):**
-- Tag v0.0.7 release
-- Test Docker deployment end-to-end
-- Share on r/LocalLLaMA, r/rust
-- Create GitHub issues templates
-- Wait for first user feedback
-- Stay in 0.0.x until real-world proven
+**Testing Status:**
+- ❌ Docker build not tested (Docker not available on dev machine)
+- ❌ docker-compose not tested
+- ❌ Systemd service not tested
+- ❌ Nginx/Caddy configs syntax not validated
+- ❌ Monitoring stack not tested
+- ❌ End-to-end deployment not tested
+
+**Known Issues to Fix:**
+- Python package structure (python/pyproject.toml) doesn't exist - Docker build will fail
+- NVIDIA runtime configuration not validated
+- SSL certificate paths in nginx.conf reference non-existent files
+- User/directory setup not scripted (manual steps required)
+- No CI/CD to validate configurations automatically
+
+**Next (0.0.8 - Testing & Validation):**
+- Create Python package structure for Docker build
+- Set up CI to test Docker build
+- Test deployment configs on clean VM
+- Fix issues found during testing
+- Document actual test results
+- Get real user to test deployment
+- Stay in 0.0.x until proven
 
 ## Blockers
 
-None
+**Need testing infrastructure:**
+- Docker + NVIDIA runtime for build testing
+- Clean VM/server for deployment testing
+- GPU-enabled CI (expensive/complex)
+
+**Can't fully test without:**
+- Real deployment environment
+- User feedback on configs

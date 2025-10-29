@@ -2,6 +2,20 @@
 
 **Security best practices for production deployments**
 
+## ⚠️ WARNING
+
+**These security configurations have NOT been tested or audited.** They represent industry best practices but require validation and customization for your environment.
+
+**Do NOT use in production without:**
+- Testing all configurations
+- Security audit by qualified personnel
+- Adjustments for your specific requirements
+- Regular security updates and monitoring
+
+**See [docs/TESTING_DEPLOYMENT.md](TESTING_DEPLOYMENT.md) for security testing checklist.**
+
+---
+
 ## Overview
 
 vllama is designed for production environments. This guide covers security considerations for deploying LLM inference servers.

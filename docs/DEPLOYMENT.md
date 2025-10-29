@@ -2,6 +2,22 @@
 
 **Target:** Production Linux deployments with NVIDIA GPUs
 
+## ⚠️ CRITICAL WARNING
+
+**These configurations have NOT been tested end-to-end.** They are templates based on industry best practices that require validation before production use.
+
+**Known Issues:**
+- Docker build untested (Python package structure missing - will fail)
+- Configuration syntax not validated (nginx, caddy, systemd)
+- No automated testing infrastructure
+- SSL certificate paths reference non-existent files
+
+**See [docs/TESTING_DEPLOYMENT.md](TESTING_DEPLOYMENT.md) for comprehensive testing checklist.**
+
+**Use at your own risk.** Test thoroughly on non-production systems first.
+
+---
+
 This guide covers deploying vllama in production environments with Docker, systemd, reverse proxies, and monitoring.
 
 ## Table of Contents
