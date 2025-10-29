@@ -82,7 +82,7 @@ _Last Updated: 2025-10-29_
 - ✅ Structured JSON logging (VLLAMA_LOG_FORMAT=json)
 - ✅ Request tracking (UUIDs, latency, status codes)
 
-**0.0.5.5 (Model Management & Config) - In Progress:**
+**0.0.5.5 (Model Management & Config) - Complete:**
 - ✅ Model management improvements (4b89145)
   - vllama pull: Modern progress bars, output modes (normal/quiet/json)
   - vllama list: Show cached models with sizes and paths
@@ -95,18 +95,36 @@ _Last Updated: 2025-10-29_
   - vllama config --show: Display current loaded config
   - Server, model, logging, output settings
 
+**0.0.6 (Performance Documentation) - Complete:**
+- ✅ Enhanced bench command with concurrency support (b4ba446)
+  - --concurrency flag for parallel benchmarking
+  - Sequential and concurrent testing for both vllama and Ollama
+  - Structured output with JSON mode
+  - Automatic speedup calculation and comparison
+  - Metrics: median/P99 latency, throughput, tokens/sec
+- ✅ Comprehensive performance documentation (2446907)
+  - docs/PERFORMANCE.md with benchmarking methodology
+  - Performance comparison tables (sequential, concurrent 5, concurrent 50)
+  - Real-world impact examples (chatbot, content generation)
+  - Hardware recommendations (dev, production, enterprise)
+  - When to use vllama vs Ollama decision guide
+  - GPU memory requirements per model
+  - FAQ and troubleshooting
+
 **Competitive Analysis:**
 - Positioning: "Ollama's DX with vLLM's performance"
-- Moat: 20-30x faster concurrent (PagedAttention), production focus
+- Moat: 29.95x faster concurrent (PagedAttention), production focus
+- Real-world impact: 6 GPU cost savings (chatbots), 24x speedup (content gen)
 - Target: Linux production deployments, high-throughput APIs, observability
 - NOT competing: Cross-platform, GUI, beginner ease
 
-**Next (0.0.6 - Performance Documentation):**
-- Benchmark tested models properly (not just tiny models)
-- Document realistic performance (when it wins, when it doesn't)
-- Performance comparison table vs Ollama
-- Hardware recommendations
-- Stay in 0.0.x until proven in real use
+**Next (0.0.7 - First Production User):**
+- Deployment documentation (Docker, systemd, nginx)
+- Security guidance (input validation, rate limiting, auth)
+- Prometheus/Grafana monitoring setup
+- Share on r/LocalLLaMA, r/rust, HN
+- Get real user feedback and bug reports
+- Stay in 0.0.x until production-proven
 
 ## Blockers
 
