@@ -1,4 +1,5 @@
 mod commands;
+mod config;
 mod error;
 mod output;
 
@@ -119,25 +120,40 @@ enum Commands {
         #[arg(short, long, help = "Number of iterations", default_value = "5")]
         iterations: usize,
     },
+
+    #[command(about = "Generate example configuration file")]
+    Config {
+        #[arg(long, help = "Show current configuration")]
+        show: bool,
+    },
 }
 
 #[tokio::main]
 async fn main() -> ExitCode {
     let cli = Cli::parse();
 
-    init_tracing(cli.verbose);
+    // Load configuration files
+    let config = match config::Config::load() {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("Failed to load configuration: {}", e);
+            return ExitCode::from(error::EXIT_ERROR);
+        }
+    };
 
-    // Determine output mode
-    let output_mode = if cli.json {
+    init_tracing(cli.verbose || config.logging.level == "debug");
+
+    // Determine output mode (CLI flags override config)
+    let output_mode = if cli.json || config.output.json {
         OutputMode::Json
-    } else if cli.quiet {
+    } else if cli.quiet || config.output.quiet {
         OutputMode::Quiet
     } else {
         OutputMode::Normal
     };
 
     // Run command and handle errors gracefully
-    if let Err(err) = run_command(cli.command, output_mode).await {
+    if let Err(err) = run_command(cli.command, output_mode, config).await {
         let user_error = handle_error(err);
         eprintln!("{}", user_error);
         return user_error.exit_code();
@@ -146,7 +162,7 @@ async fn main() -> ExitCode {
     ExitCode::from(EXIT_SUCCESS)
 }
 
-async fn run_command(command: Commands, output_mode: OutputMode) -> Result<()> {
+async fn run_command(command: Commands, output_mode: OutputMode, config: config::Config) -> Result<()> {
     match command {
         Commands::Serve {
             host,
@@ -157,6 +173,18 @@ async fn run_command(command: Commands, output_mode: OutputMode) -> Result<()> {
             max_num_seqs,
             gpu_memory_utilization,
         } => {
+            // Apply config defaults when CLI flags not provided
+            let host = if host == "127.0.0.1" { config.server.host } else { host };
+            let port = if port == 11434 { config.server.port } else { port };
+            let vllm_port = if vllm_port == 8100 { config.server.vllm_port } else { vllm_port };
+            let model = model.or(config.model.default_model);
+            let max_num_seqs = if max_num_seqs == 256 { config.model.max_num_seqs } else { max_num_seqs };
+            let gpu_memory_utilization = if (gpu_memory_utilization - 0.9).abs() < 0.001 {
+                config.model.gpu_memory_utilization
+            } else {
+                gpu_memory_utilization
+            };
+
             serve::run(
                 host,
                 port,
@@ -207,6 +235,28 @@ async fn run_command(command: Commands, output_mode: OutputMode) -> Result<()> {
             iterations,
         } => {
             bench::execute(model, prompt, iterations).await?;
+        }
+        Commands::Config { show } => {
+            if show {
+                // Show current configuration
+                match output_mode {
+                    OutputMode::Json => {
+                        output::json(&config);
+                    }
+                    _ => {
+                        println!("{}", output::section("Current Configuration"));
+                        println!();
+                        let toml = toml::to_string_pretty(&config)?;
+                        println!("{}", toml);
+                    }
+                }
+            } else {
+                // Generate example configuration
+                println!("{}", output::section("Example Configuration"));
+                println!();
+                println!("Save this to ~/.config/vllama/config.toml or ./vllama.toml:\n");
+                println!("{}", config::Config::example());
+            }
         }
     }
 
