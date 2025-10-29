@@ -100,7 +100,7 @@ pub fn json<T: Serialize>(data: &T) {
 
 /// Print key-value pair
 pub fn kv(key: &str, value: &str) {
-    println!("  {} {}", style(Symbols::BULLET).dim(), format!("{}: {}", style(key).dim(), value));
+    println!("  {} {}: {}", style(Symbols::BULLET).dim(), style(key).dim(), value);
 }
 
 #[cfg(test)]

@@ -59,7 +59,7 @@ pub struct LoggingConfig {
     pub json: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct OutputConfig {
     #[serde(default)]
     pub quiet: bool,
@@ -92,15 +92,6 @@ impl Default for LoggingConfig {
     fn default() -> Self {
         Self {
             level: default_log_level(),
-            json: false,
-        }
-    }
-}
-
-impl Default for OutputConfig {
-    fn default() -> Self {
-        Self {
-            quiet: false,
             json: false,
         }
     }

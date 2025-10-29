@@ -9,7 +9,6 @@ use std::process::ExitCode;
 /// Exit codes following Unix conventions
 pub const EXIT_SUCCESS: u8 = 0;
 pub const EXIT_ERROR: u8 = 1;
-pub const EXIT_INVALID_INPUT: u8 = 2;
 
 /// User-facing error with helpful context
 pub struct UserError {
@@ -44,18 +43,6 @@ impl UserError {
     pub fn with_suggestion(mut self, suggestion: impl Into<String>) -> Self {
         self.suggestions.push(suggestion.into());
         self
-    }
-
-    /// Set custom exit code
-    pub fn with_exit_code(mut self, code: u8) -> Self {
-        self.exit_code = code;
-        self
-    }
-
-    /// Display the error to the user and exit
-    pub fn exit(self) -> ! {
-        eprintln!("{}", self);
-        std::process::exit(self.exit_code as i32);
     }
 
     /// Get exit code
@@ -193,6 +180,5 @@ mod tests {
     fn test_exit_codes() {
         assert_eq!(EXIT_SUCCESS, 0);
         assert_eq!(EXIT_ERROR, 1);
-        assert_eq!(EXIT_INVALID_INPUT, 2);
     }
 }

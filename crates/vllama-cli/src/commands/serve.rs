@@ -11,6 +11,7 @@ use serde_json::json;
 #[cfg(unix)]
 use std::os::unix::process::CommandExt;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn run(
     host: String,
     port: u16,
