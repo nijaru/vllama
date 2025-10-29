@@ -242,3 +242,35 @@ What was created (a302f51):
 **Can't fully test without:**
 - Real deployment environment
 - User feedback on configs
+
+## Development Notes
+
+### Port Conflicts (Fedora)
+
+**Important for development on Fedora:**
+
+vllama uses port 11434 (same as Ollama). You must stop Ollama before starting vllama:
+
+```bash
+# Stop Ollama service
+sudo systemctl stop ollama
+
+# Or disable auto-start
+sudo systemctl disable ollama
+
+# Verify port is free
+lsof -i:11434  # Should return nothing
+```
+
+**For benchmarking (need both running):**
+```bash
+# vllama on default port
+vllama serve --model <model> --port 11434
+
+# Ollama on alternate port
+OLLAMA_HOST=127.0.0.1:11435 ollama serve
+```
+
+This is documented in:
+- [docs/FEDORA_SETUP.md](../docs/FEDORA_SETUP.md)
+- [CLAUDE.md](../CLAUDE.md)

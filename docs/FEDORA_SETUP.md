@@ -1,5 +1,31 @@
 # vllama Setup on Fedora + RTX 4090
 
+## Prerequisites
+
+### Port Conflict Warning
+
+**IMPORTANT:** vllama uses port 11434 (same as Ollama). If you have Ollama installed and running, you must stop it first:
+
+```bash
+# Stop Ollama service
+sudo systemctl stop ollama
+
+# Or disable it from auto-starting
+sudo systemctl disable ollama
+
+# Verify port 11434 is free
+lsof -i:11434  # Should return nothing
+```
+
+**During development:** You can run both vllama and Ollama by using different ports:
+```bash
+# vllama on default port 11434
+vllama serve --model <model> --port 11434
+
+# Ollama on alternate port
+OLLAMA_HOST=127.0.0.1:11435 ollama serve
+```
+
 ## Quick Setup
 
 Run these commands on your Fedora machine to get started:
@@ -19,56 +45,73 @@ source "$HOME/.cargo/env"
 rustc --version  # Verify installation
 ```
 
-### 3. Install Python Dependencies
+### 3. Install uv (Python Package Manager)
 ```bash
-cd ~/github/nijaru/vllama/python
-uv pip install -r requirements.txt
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source "$HOME/.cargo/env"  # Reload PATH
+uv --version  # Verify installation
 ```
 
-### 4. Build vllama
+### 4. Install Python Dependencies
+```bash
+cd ~/github/nijaru/vllama/python
+uv sync  # Installs vLLM and all dependencies
+```
+
+### 5. Build vllama
 ```bash
 cd ~/github/nijaru/vllama
 cargo build --release
 ```
 
-### 5. Test Everything Works
+### 6. Test Everything Works
 
-**Terminal 1: Start vLLM Service**
+**Start server (auto-starts vLLM):**
 ```bash
-cd ~/github/nijaru/vllama/python
-uvicorn llm_service.server:app --host 127.0.0.1 --port 8100
+./target/release/vllama serve --model Qwen/Qwen2.5-0.5B-Instruct
 ```
 
-**Terminal 2: Run Benchmark**
+**In another terminal, test generation:**
 ```bash
-cd ~/github/nijaru/vllama
-./target/release/vllama bench "meta-llama/Llama-3.1-8B-Instruct" "Test prompt" -i 10
+curl -X POST http://localhost:11434/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "prompt": "What is 2+2?",
+    "stream": false
+  }'
+```
+
+**Run benchmarks:**
+```bash
+./target/release/vllama bench Qwen/Qwen2.5-0.5B-Instruct "Test prompt" -i 10
 ```
 
 ## Expected GPU Performance
 
-**Mac M3 Max CPU Baseline:**
-- Throughput: 23.71 tokens/sec
-- Latency: 2108ms per request
+**RTX 4090 Performance:**
+- **Sequential:** 232ms per request (4.4x faster than Ollama)
+- **Concurrent (5 requests):** 0.217s total (29.95x faster than Ollama)
+- **High concurrency (50 requests):** 23.6 req/s sustained throughput
 
-**Fedora RTX 4090 GPU Target:**
-- Throughput: 200-800 tokens/sec
-- Latency: 50-200ms per request
-- Speedup: **10-50x improvement**
+See [docs/PERFORMANCE.md](PERFORMANCE.md) for comprehensive benchmarks.
 
 ## Continue Development
 
 Once setup is complete:
 
-1. Open the `vllama` directory in your editor
-2. Reference `PROJECT_STATUS.md` for current status and roadmap
-3. See `README.md` for API usage examples
+1. See [ai/STATUS.md](../ai/STATUS.md) for current status and roadmap
+2. See [ai/TODO.md](../ai/TODO.md) for active tasks and priorities
+3. See [README.md](../README.md) for API usage examples
+4. See [CLAUDE.md](../CLAUDE.md) for development guidelines
 
 ## Key Files to Reference
 
-- `PROJECT_STATUS.md` - Current status and roadmap (source of truth)
-- `README.md` - User-facing getting started guide
-- `docs/` - Additional documentation (mostly archived)
+- [ai/STATUS.md](../ai/STATUS.md) - Current status (read first)
+- [ai/TODO.md](../ai/TODO.md) - Active tasks and priorities
+- [CLAUDE.md](../CLAUDE.md) - Development guidelines
+- [README.md](../README.md) - User-facing getting started guide
+- [TESTING_STATUS.md](../TESTING_STATUS.md) - What's tested vs not
 
 ## Troubleshooting
 
@@ -85,10 +128,23 @@ python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
 ```
 
 ### Port Already in Use
+
+**Port 11434 conflict (usually Ollama):**
 ```bash
-# Kill processes on ports
-lsof -ti:8100 | xargs kill -9
+# Check what's using port 11434
+lsof -i:11434
+
+# Stop Ollama if it's running
+sudo systemctl stop ollama
+
+# Or kill any process on port 11434
 lsof -ti:11434 | xargs kill -9
+```
+
+**Port 8100 conflict (vLLM):**
+```bash
+# Kill any process on port 8100
+lsof -ti:8100 | xargs kill -9
 ```
 
 ### Compilation Errors
@@ -104,9 +160,11 @@ cargo build --release
 ## Ready to Use!
 
 Once setup is complete, you're ready to:
-1. Start the vLLM service
-2. Start the vllama server
-3. Make API requests (see README.md for examples)
-4. Test performance
+1. Start vllama server (auto-starts vLLM)
+2. Make API requests (see [README.md](../README.md) for examples)
+3. Run benchmarks and tests
+4. Monitor with `/health` endpoint
 
-See `PROJECT_STATUS.md` for current features and roadmap!
+**Remember:** Stop Ollama first to avoid port conflicts!
+
+See [ai/STATUS.md](../ai/STATUS.md) for current features and roadmap.
