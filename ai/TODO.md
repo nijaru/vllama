@@ -74,6 +74,58 @@ _Last Updated: 2025-10-29_
 
 ---
 
+## ✅ 0.0.5 Post-Release Testing (Complete!)
+
+**Goal:** Validate server works before deployment ✅
+
+**What happened:** Testing found critical bugs that code review missed!
+
+### Critical Bugs Found & Fixed ✅
+- [x] **Bug 1: Startup timeout too short** (commit 4cd44b8)
+  - Problem: 60s timeout, vLLM takes ~67s due to CUDA graph compilation
+  - Fix: Increased to 120s with comment explaining why
+  - Impact: Server now starts successfully
+
+- [x] **Bug 2: Orphaned vLLM subprocess** (commit 4cd44b8)
+  - Problem: `uv run` spawns Python subprocess, only parent killed on error
+  - Result: vLLM orphaned, required manual `kill -9`, GPU memory stuck
+  - Fix: Kill entire process group (SIGTERM then SIGKILL)
+  - Impact: Clean shutdown verified (processes, GPU memory, ports)
+
+### Testing Completed ✅
+- [x] Local server testing (Qwen/Qwen2.5-0.5B-Instruct)
+  - [x] Server startup (64s < 120s timeout)
+  - [x] Health endpoint (JSON response)
+  - [x] Generation endpoint (model responds)
+  - [x] Shutdown cleanup (processes, GPU, ports)
+
+- [x] Integration tests (commit ac613e8)
+  - [x] Fixed 2 outdated test expectations
+  - [x] All 8 integration tests passing
+
+- [x] Unit tests
+  - [x] All 14 tests passing
+
+### Documentation & Cleanup ✅
+- [x] Updated ai/STATUS.md with testing results (commit 56c792b)
+- [x] Created TESTING_STATUS.md with comprehensive assessment
+- [x] Moved untested deployment configs to `deployment-configs` branch (commit 7a5849f)
+  - Removed Docker, systemd, nginx, monitoring from main
+  - Main branch now contains only tested code
+
+- [x] Fixed all clippy warnings (commits 58521ec, c05bb97)
+  - Removed dead code
+  - Optimized formatting
+  - Clean build with `-D warnings`
+
+**Key Takeaway:** User's instinct to test before shipping was 100% correct.
+Code review said "looks correct" but testing found real bugs. This validates
+the importance of actual testing over assumptions.
+
+**Current Status:** Core vllama server tested and working. Ready for deployment validation.
+
+---
+
 ## 0.0.5.5 - Competitive Analysis Findings
 
 **Key insight:** vllama needs to be "Ollama's DX with vLLM's performance"
@@ -151,6 +203,58 @@ _Last Updated: 2025-10-29_
 **Success:** 1+ production deployment, real user feedback
 
 **Tag:** v0.0.7 when done
+
+---
+
+## Next Steps - Immediate Priorities
+
+### 0.0.6 - Deployment Validation (NEXT)
+
+**Goal:** Test the deployment configs we created
+
+**Status:** Deployment infrastructure exists in `deployment-configs` branch but NOT TESTED
+
+**Tasks:**
+- [ ] Test Docker build and deployment
+  - [ ] Fix Python package structure issues
+  - [ ] Verify container process cleanup
+  - [ ] Test with different models
+
+- [ ] Test systemd service
+  - [ ] Verify auto-restart on crash
+  - [ ] Test graceful shutdown
+  - [ ] Validate log management
+
+- [ ] Test reverse proxy configs
+  - [ ] Nginx configuration
+  - [ ] Caddy configuration
+  - [ ] SSL/TLS setup
+
+- [ ] Test monitoring setup
+  - [ ] Prometheus metrics collection
+  - [ ] Grafana dashboards
+  - [ ] Alert configuration
+
+**Once tested:** Merge `deployment-configs` branch back to main
+
+**Tag:** v0.0.6 when deployment configs are validated
+
+---
+
+### 0.0.7+ - Real User Feedback (CRITICAL)
+
+**Goal:** Get 1-3 real users deploying vllama
+
+**Why:** Need real-world validation before claiming "production-ready"
+
+**Tasks:**
+- [ ] Share on r/LocalLLaMA, r/rust, Hacker News
+- [ ] Document deployment process end-to-end
+- [ ] Provide support for early adopters
+- [ ] Collect feedback and bug reports
+- [ ] Fix issues found in real usage
+
+**Stay in 0.0.x until:** Proven in production with multiple users for weeks/months
 
 ---
 

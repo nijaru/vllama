@@ -1,23 +1,42 @@
-# Deployment Testing Guide
+# Deployment Configuration Status
 
-**CRITICAL: These deployment configurations have NOT been tested end-to-end.**
+**UPDATE (2025-10-29):** Deployment configurations have been moved to the `deployment-configs` branch.
 
-This document outlines the testing that MUST be done before using these configs in production.
+## Why the Separate Branch?
 
-## Current Testing Status
+Testing revealed critical bugs in core vllama server code. The deployment infrastructure was created BEFORE the core server was validated, which put the cart before the horse.
 
-**What was created:**
-- ✅ Dockerfile
-- ✅ docker-compose.yml
-- ✅ systemd service file
-- ✅ Nginx configuration
-- ✅ Caddy configuration
-- ✅ Prometheus/Grafana configs
-- ✅ Deployment documentation
+**Approach:** Test and fix core functionality first, validate deployment configs second.
 
-**What was tested:**
-- ❌ Docker build
-- ❌ Docker compose deployment
+## Current Status
+
+**Main Branch (tested code only):**
+- ✅ Core vllama server tested and working
+- ✅ 22 tests passing (14 unit + 8 integration)
+- ✅ Critical bugs found and fixed (timeout, orphaned subprocess)
+- ✅ Server cleanup verified (processes, GPU memory, ports)
+
+**deployment-configs Branch (untested infrastructure):**
+- ⚠️ Dockerfile (will fail - missing Python package structure)
+- ⚠️ docker-compose.yml (syntax not validated)
+- ⚠️ systemd service file (not tested)
+- ⚠️ Nginx/Caddy configs (not validated)
+- ⚠️ Prometheus/Grafana configs (not tested)
+- ⚠️ Deployment documentation
+
+## Using Deployment Configs
+
+**To experiment with deployment configs:**
+
+```bash
+git checkout deployment-configs
+ls -la deployment/ monitoring/
+cat Dockerfile docker-compose.yml
+```
+
+**IMPORTANT:** These configs are templates and have NOT been tested. They may not work without modifications.
+
+## Testing Checklist (Before Merge to Main)
 - ❌ Systemd service
 - ❌ Nginx configuration
 - ❌ Caddy configuration

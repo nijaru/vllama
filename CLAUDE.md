@@ -12,34 +12,40 @@ vllama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA
 
 ## Project Status
 
-**Current:** 0.0.7 (experimental - NOT production-ready)
+**Current:** 0.0.5 (core tested and working!)
 - ✅ Core Ollama API endpoints working
 - ✅ 29.95x faster than Ollama on concurrent requests (validated benchmarks)
-- ✅ Comprehensive testing (19 tests passing)
+- ✅ Comprehensive testing (22 tests passing: 14 unit + 8 integration)
+- ✅ Critical bugs found and FIXED (timeout, orphaned subprocess)
 - ✅ Model validation (Qwen 2.5: 0.5B, 1.5B, 7B; Mistral 7B)
 - ✅ Modern CLI UX, error handling, monitoring
 - ✅ Performance documentation (docs/PERFORMANCE.md)
-- ✅ Deployment configs created (Docker, systemd, nginx, monitoring)
-- ⚠️ Deployment configs NOT TESTED (templates only, need validation)
+- ✅ Server cleanup verified (processes, GPU memory, ports)
+- ❌ Deployment configs UNTESTED (moved to `deployment-configs` branch)
 - ❌ NO real production users yet
 - ❌ NOT validated in real use
 
-**Reality:** Stay in 0.0.x for a LONG time - extremely experimental
+**Reality:** Core server works, deployment needs validation. Stay in 0.0.x until production-proven.
 
-**Deployment Status (0.0.7):**
-- Created comprehensive deployment infrastructure (Docker, systemd, reverse proxy, monitoring)
-- **CRITICAL:** None of these configs have been tested
-- Docker build will fail (missing Python package structure)
-- Configs are industry best-practice templates requiring validation
-- See docs/TESTING_DEPLOYMENT.md for testing checklist
+**Testing Status (Latest):**
+- Tested server locally with Qwen/Qwen2.5-0.5B-Instruct
+- Found 2 critical bugs through testing (not code review!)
+  - Bug 1: Startup timeout too short (60s → 120s fixed)
+  - Bug 2: Orphaned vLLM subprocess on error (process group kill fixed)
+- All 22 tests passing (14 unit + 8 integration)
+- Cleanup verified: processes killed, GPU memory released, ports freed
+- See TESTING_STATUS.md for full details
 
-**Next:** Testing & validation (0.0.8)
-- ✅ 0.0.5: CLI polish complete
-- ✅ 0.0.6: Performance documentation complete
-- ✅ 0.0.7: Deployment configs created (untested)
-- 0.0.8: Test deployment configs, fix issues, get user feedback
+**Deployment Status:**
+- Deployment configs moved to `deployment-configs` branch (untested)
+- Main branch contains only tested code
+- Docker, systemd, nginx, monitoring configs need validation before merge
+
+**Next:** Deployment validation & real user feedback
+- ✅ 0.0.5: Core tested, critical bugs fixed
+- 0.0.6: Test deployment configs (Docker, systemd, etc.)
 - 0.0.x: Stay here until proven in real use
-- Don't jump to 0.1.0 until production-proven
+- Don't jump to 0.1.0 until production-proven with real users
 
 ## Architecture
 
