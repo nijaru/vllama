@@ -5,6 +5,8 @@ use tokio::signal;
 use tokio::time::sleep;
 use tracing::{error, info, warn};
 use vllama_server::Server;
+use crate::output::{self, OutputMode};
+use serde_json::json;
 
 pub async fn run(
     host: String,
@@ -14,20 +16,42 @@ pub async fn run(
     no_vllm: bool,
     max_num_seqs: usize,
     gpu_memory_utilization: f32,
+    output_mode: OutputMode,
 ) -> Result<()> {
     let mut vllm_process: Option<Child> = None;
+
+    // Show header in normal mode
+    if output_mode == OutputMode::Normal {
+        println!("vLLama v{}\n", env!("CARGO_PKG_VERSION"));
+    }
 
     if !no_vllm {
         if let Some(model_name) = &model {
             info!("Starting vLLM OpenAI server on port {}", vllm_port);
-            println!("🚀 Starting vLLM OpenAI server...");
-            println!("   Model: {}", model_name);
-            println!("   Port: {}", vllm_port);
-            println!("   Max sequences: {}", max_num_seqs);
-            println!("   Batched tokens: 16384 (optimized)");
-            println!("   GPU memory: {:.0}%", gpu_memory_utilization * 100.0);
-            println!("   Optimizations: chunked-prefill ✓ prefix-caching ✓");
-            println!();
+
+            match output_mode {
+                OutputMode::Normal => {
+                    println!("{}", output::section("Loading model"));
+                    output::kv("Model", model_name);
+                    output::kv("Port", &vllm_port.to_string());
+                    output::kv("Max sequences", &max_num_seqs.to_string());
+                    output::kv("Batched tokens", "16,384");
+                    output::kv("GPU memory", &format!("{:.0}%", gpu_memory_utilization * 100.0));
+                    output::kv("Optimizations", "chunked-prefill, prefix-caching");
+                    output::kv("Logs", "vllm.log");
+                    println!();
+                }
+                OutputMode::Json => {
+                    output::json(&json!({
+                        "event": "vllm_starting",
+                        "model": model_name,
+                        "port": vllm_port,
+                        "max_sequences": max_num_seqs,
+                        "gpu_memory_utilization": gpu_memory_utilization
+                    }));
+                }
+                OutputMode::Quiet => {}
+            }
 
             vllm_process = Some(start_vllm_server(
                 model_name,
@@ -36,40 +60,111 @@ pub async fn run(
                 gpu_memory_utilization,
             )?);
 
-            println!("⏳ Waiting for vLLM server to be ready...");
+            // Wait for vLLM with spinner
+            let spinner = if output_mode == OutputMode::Normal {
+                Some(output::spinner("Starting vLLM engine..."))
+            } else {
+                None
+            };
+
             if !wait_for_vllm_ready(vllm_port).await {
+                if let Some(sp) = spinner {
+                    sp.finish_and_clear();
+                }
                 error!("vLLM server failed to start");
                 if let Some(mut child) = vllm_process {
                     let _ = child.kill();
                 }
+
+                if output_mode == OutputMode::Json {
+                    output::json(&json!({"event": "error", "message": "vLLM server failed to start"}));
+                }
+
                 anyhow::bail!("vLLM server failed to start within 60 seconds");
             }
-            println!("✓ vLLM server ready!");
-            println!();
+
+            if let Some(sp) = spinner {
+                sp.finish_with_message(output::success("vLLM engine ready"));
+            }
+
+            if output_mode == OutputMode::Json {
+                output::json(&json!({"event": "vllm_ready"}));
+            }
+
+            if output_mode == OutputMode::Normal {
+                println!();
+            }
         } else {
             warn!("No model specified, skipping vLLM server startup");
-            println!("⚠️  No model specified. Use --model to auto-start vLLM server.");
-            println!("   Or use --no-vllm if vLLM is already running.");
-            println!();
+
+            match output_mode {
+                OutputMode::Normal => {
+                    println!("{}", output::warning("No model specified"));
+                    println!("{}", output::bullet("Use --model to auto-start vLLM server"));
+                    println!("{}", output::bullet("Or use --no-vllm if vLLM is already running"));
+                    println!();
+                }
+                OutputMode::Json => {
+                    output::json(&json!({
+                        "event": "warning",
+                        "message": "No model specified, vLLM not started"
+                    }));
+                }
+                OutputMode::Quiet => {}
+            }
         }
     } else {
         info!("Skipping vLLM server startup (--no-vllm flag)");
-        println!("ℹ️  Connecting to existing vLLM server on port {}", vllm_port);
-        println!();
+
+        match output_mode {
+            OutputMode::Normal => {
+                println!("{}", output::info(&format!("Connecting to existing vLLM server on port {}", vllm_port)));
+                println!();
+            }
+            OutputMode::Json => {
+                output::json(&json!({
+                    "event": "info",
+                    "message": "Using existing vLLM server",
+                    "port": vllm_port
+                }));
+            }
+            OutputMode::Quiet => {}
+        }
     }
 
     info!("Starting vLLama server on {}:{}", host, port);
-    println!("🚀 vLLama server starting on {}:{}", host, port);
-    println!();
-    println!("API Endpoints:");
-    println!("  POST {}:{}/api/generate - Generate text", host, port);
-    println!("  POST {}:{}/api/chat - Chat completions", host, port);
-    println!("  POST {}:{}/v1/chat/completions - OpenAI chat", host, port);
-    println!("  GET  {}:{}/api/tags - List models", host, port);
-    println!("  GET  {}:{}/health - Health check", host, port);
-    println!();
-    println!("Press Ctrl+C to stop");
-    println!();
+
+    match output_mode {
+        OutputMode::Normal => {
+            println!("{}", output::section("Starting Ollama API"));
+            println!("{}", output::success(&format!("Listening on http://{}:{}", host, port)));
+            println!();
+            println!("  Endpoints:");
+            println!("{}", output::bullet("POST /api/generate"));
+            println!("{}", output::bullet("POST /api/chat"));
+            println!("{}", output::bullet("POST /v1/chat/completions"));
+            println!("{}", output::bullet("GET  /api/ps"));
+            println!();
+            println!("Press Ctrl+C to stop");
+            println!();
+        }
+        OutputMode::Quiet => {
+            println!("{}", output::success(&format!("Listening on http://{}:{}", host, port)));
+        }
+        OutputMode::Json => {
+            output::json(&json!({
+                "event": "server_started",
+                "host": host,
+                "port": port,
+                "endpoints": [
+                    "/api/generate",
+                    "/api/chat",
+                    "/v1/chat/completions",
+                    "/api/ps"
+                ]
+            }));
+        }
+    }
 
     let server = Server::new(host, port).map_err(|e| anyhow::anyhow!("{}", e))?;
 
@@ -81,23 +176,42 @@ pub async fn run(
             result.map_err(|e| anyhow::anyhow!("{}", e))?;
         }
         _ = shutdown_signal => {
-            println!("\n🛑 Shutting down...");
+            if output_mode == OutputMode::Normal {
+                println!();
+                println!("{}", output::info("Shutting down..."));
+            }
             info!("Received shutdown signal");
         }
     }
 
     if let Some(mut child) = vllm_process {
         info!("Stopping vLLM server");
-        println!("🛑 Stopping vLLM server...");
-        if let Err(e) = child.kill() {
-            warn!("Failed to kill vLLM process: {}", e);
+
+        if output_mode == OutputMode::Normal {
+            let spinner = output::spinner("Stopping vLLM engine...");
+            if let Err(e) = child.kill() {
+                warn!("Failed to kill vLLM process: {}", e);
+                spinner.finish_with_message(output::warning("vLLM process cleanup failed"));
+            } else {
+                let _ = child.wait();
+                spinner.finish_with_message(output::success("vLLM engine stopped"));
+            }
         } else {
+            let _ = child.kill();
             let _ = child.wait();
-            println!("✓ vLLM server stopped");
+        }
+
+        if output_mode == OutputMode::Json {
+            output::json(&json!({"event": "vllm_stopped"}));
         }
     }
 
-    println!("✓ Shutdown complete");
+    match output_mode {
+        OutputMode::Normal => println!("{}", output::success("Shutdown complete")),
+        OutputMode::Json => output::json(&json!({"event": "shutdown_complete"})),
+        OutputMode::Quiet => {}
+    }
+
     Ok(())
 }
 
@@ -107,6 +221,15 @@ fn start_vllm_server(
     max_num_seqs: usize,
     gpu_memory_utilization: f32,
 ) -> Result<Child> {
+    // Redirect vLLM output to log file for clean CLI UX
+    use std::fs::OpenOptions;
+
+    let log_file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("vllm.log")
+        .context("Failed to create vllm.log file")?;
+
     let child = Command::new("uv")
         .args([
             "run",
@@ -131,8 +254,8 @@ fn start_vllm_server(
             "--gpu-memory-utilization",
             &gpu_memory_utilization.to_string(),
         ])
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
+        .stdout(Stdio::from(log_file.try_clone()?))
+        .stderr(Stdio::from(log_file))
         .spawn()
         .context("Failed to start vLLM server. Is uv installed? (curl -LsSf https://astral.sh/uv/install.sh | sh)")?;
 

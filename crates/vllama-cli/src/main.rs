@@ -1,8 +1,10 @@
 mod commands;
+mod output;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use commands::*;
+use output::OutputMode;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser)]
@@ -16,7 +18,10 @@ struct Cli {
     #[arg(long, global = true, help = "Enable verbose logging")]
     verbose: bool,
 
-    #[arg(long, global = true, help = "Enable JSON output")]
+    #[arg(long, global = true, help = "Minimal output")]
+    quiet: bool,
+
+    #[arg(long, global = true, help = "JSON output for scripting")]
     json: bool,
 }
 
@@ -119,6 +124,15 @@ async fn main() -> Result<()> {
 
     init_tracing(cli.verbose);
 
+    // Determine output mode
+    let output_mode = if cli.json {
+        OutputMode::Json
+    } else if cli.quiet {
+        OutputMode::Quiet
+    } else {
+        OutputMode::Normal
+    };
+
     match cli.command {
         Commands::Serve {
             host,
@@ -137,6 +151,7 @@ async fn main() -> Result<()> {
                 no_vllm,
                 max_num_seqs,
                 gpu_memory_utilization,
+                output_mode,
             )
             .await?;
         }
