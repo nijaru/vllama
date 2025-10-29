@@ -1,10 +1,14 @@
 use axum::{
     routing::{get, post},
     Router,
+    http::{Request, Response},
+    body::Body,
 };
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
-use tracing::info;
+use tracing::{info, Span};
+use std::time::Instant;
+use uuid::Uuid;
 
 use crate::api;
 use crate::state::ServerState;
@@ -27,6 +31,40 @@ impl Server {
     }
 
     pub async fn run(self) -> crate::Result<()> {
+        // Custom trace layer with request IDs and latency tracking
+        let trace_layer = TraceLayer::new_for_http()
+            .make_span_with(|request: &Request<Body>| {
+                let request_id = Uuid::new_v4().to_string();
+                let method = request.method().as_str();
+                let uri = request.uri().path();
+
+                tracing::info_span!(
+                    "request",
+                    request_id = %request_id,
+                    method = %method,
+                    uri = %uri,
+                    latency_ms = tracing::field::Empty,
+                    status = tracing::field::Empty,
+                )
+            })
+            .on_request(|_request: &Request<Body>, _span: &Span| {
+                // Record request start time
+                _span.record("start_time", Instant::now().elapsed().as_millis() as u64);
+            })
+            .on_response(|response: &Response<Body>, latency: std::time::Duration, span: &Span| {
+                let latency_ms = latency.as_millis() as u64;
+                let status = response.status().as_u16();
+
+                span.record("latency_ms", latency_ms);
+                span.record("status", status);
+
+                tracing::info!(
+                    latency_ms = latency_ms,
+                    status = status,
+                    "request completed"
+                );
+            });
+
         let app = Router::new()
             .route("/api/generate", post(api::generate))
             .route("/api/chat", post(api::chat))
@@ -38,7 +76,7 @@ impl Server {
             .route("/v1/chat/completions", post(api::openai_chat_completions))
             .route("/health", get(api::health))
             .layer(CorsLayer::permissive())
-            .layer(TraceLayer::new_for_http())
+            .layer(trace_layer)
             .with_state(self.state);
 
         let addr = format!("{}:{}", self.host, self.port);
