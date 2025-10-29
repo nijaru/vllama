@@ -8,6 +8,9 @@ use vllama_server::Server;
 use crate::output::{self, OutputMode};
 use serde_json::json;
 
+#[cfg(unix)]
+use std::os::unix::process::CommandExt;
+
 pub async fn run(
     host: String,
     port: u16,
@@ -73,14 +76,15 @@ pub async fn run(
                 }
                 error!("vLLM server failed to start");
                 if let Some(mut child) = vllm_process {
-                    let _ = child.kill();
+                    // Kill entire process tree to avoid orphaned subprocesses
+                    let _ = kill_process_tree(&mut child);
                 }
 
                 if output_mode == OutputMode::Json {
                     output::json(&json!({"event": "error", "message": "vLLM server failed to start"}));
                 }
 
-                anyhow::bail!("vLLM server failed to start within 60 seconds");
+                anyhow::bail!("vLLM server failed to start within 120 seconds");
             }
 
             if let Some(sp) = spinner {
@@ -189,15 +193,15 @@ pub async fn run(
 
         if output_mode == OutputMode::Normal {
             let spinner = output::spinner("Stopping vLLM engine...");
-            if let Err(e) = child.kill() {
-                warn!("Failed to kill vLLM process: {}", e);
+            if let Err(e) = kill_process_tree(&mut child) {
+                warn!("Failed to kill vLLM process tree: {}", e);
                 spinner.finish_with_message(output::warning("vLLM process cleanup failed"));
             } else {
                 let _ = child.wait();
                 spinner.finish_with_message(output::success("vLLM engine stopped"));
             }
         } else {
-            let _ = child.kill();
+            let _ = kill_process_tree(&mut child);
             let _ = child.wait();
         }
 
@@ -215,6 +219,38 @@ pub async fn run(
     Ok(())
 }
 
+/// Kill a child process and all its descendants
+///
+/// This is necessary because `uv run` spawns Python as a subprocess,
+/// and calling `child.kill()` only kills the parent `uv` process,
+/// leaving the Python vLLM server orphaned.
+#[cfg(unix)]
+fn kill_process_tree(child: &mut Child) -> std::io::Result<()> {
+    let pid = child.id();
+
+    // Try graceful termination first with SIGTERM to process group
+    // The negative PID signals the entire process group
+    unsafe {
+        libc::kill(-(pid as i32), libc::SIGTERM);
+    }
+
+    // Give it 2 seconds to clean up
+    std::thread::sleep(Duration::from_secs(2));
+
+    // Force kill with SIGKILL if still running
+    unsafe {
+        libc::kill(-(pid as i32), libc::SIGKILL);
+    }
+
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn kill_process_tree(child: &mut Child) -> std::io::Result<()> {
+    // On Windows, just kill the process
+    child.kill()
+}
+
 fn start_vllm_server(
     model: &str,
     port: u16,
@@ -230,34 +266,71 @@ fn start_vllm_server(
         .open("vllm.log")
         .context("Failed to create vllm.log file")?;
 
-    let child = Command::new("uv")
-        .args([
-            "run",
-            "--directory",
-            "python",
-            "python",
-            "-m",
-            "vllm.entrypoints.openai.api_server",
-            "--model",
-            model,
-            "--port",
-            &port.to_string(),
-            // Concurrency & Batching
-            "--max-num-seqs",
-            &max_num_seqs.to_string(),
-            "--max-num-batched-tokens",
-            "16384", // 32x increase from default (512) for better throughput
-            // Performance optimizations
-            "--enable-chunked-prefill", // Better concurrent request handling
-            "--enable-prefix-caching",  // Reuse KV cache for repeated prompts
-            // Memory
-            "--gpu-memory-utilization",
-            &gpu_memory_utilization.to_string(),
-        ])
-        .stdout(Stdio::from(log_file.try_clone()?))
-        .stderr(Stdio::from(log_file))
-        .spawn()
-        .context("Failed to start vLLM server. Is uv installed? (curl -LsSf https://astral.sh/uv/install.sh | sh)")?;
+    #[cfg(unix)]
+    let child = {
+        Command::new("uv")
+            .args([
+                "run",
+                "--directory",
+                "python",
+                "python",
+                "-m",
+                "vllm.entrypoints.openai.api_server",
+                "--model",
+                model,
+                "--port",
+                &port.to_string(),
+                // Concurrency & Batching
+                "--max-num-seqs",
+                &max_num_seqs.to_string(),
+                "--max-num-batched-tokens",
+                "16384", // 32x increase from default (512) for better throughput
+                // Performance optimizations
+                "--enable-chunked-prefill", // Better concurrent request handling
+                "--enable-prefix-caching",  // Reuse KV cache for repeated prompts
+                // Memory
+                "--gpu-memory-utilization",
+                &gpu_memory_utilization.to_string(),
+            ])
+            .stdout(Stdio::from(log_file.try_clone()?))
+            .stderr(Stdio::from(log_file))
+            // Create new process group so we can kill the entire tree
+            .process_group(0)
+            .spawn()
+            .context("Failed to start vLLM server. Is uv installed? (curl -LsSf https://astral.sh/uv/install.sh | sh)")?
+    };
+
+    #[cfg(not(unix))]
+    let child = {
+        Command::new("uv")
+            .args([
+                "run",
+                "--directory",
+                "python",
+                "python",
+                "-m",
+                "vllm.entrypoints.openai.api_server",
+                "--model",
+                model,
+                "--port",
+                &port.to_string(),
+                // Concurrency & Batching
+                "--max-num-seqs",
+                &max_num_seqs.to_string(),
+                "--max-num-batched-tokens",
+                "16384",
+                // Performance optimizations
+                "--enable-chunked-prefill",
+                "--enable-prefix-caching",
+                // Memory
+                "--gpu-memory-utilization",
+                &gpu_memory_utilization.to_string(),
+            ])
+            .stdout(Stdio::from(log_file.try_clone()?))
+            .stderr(Stdio::from(log_file))
+            .spawn()
+            .context("Failed to start vLLM server. Is uv installed? (curl -LsSf https://astral.sh/uv/install.sh | sh)")?
+    };
 
     Ok(child)
 }
@@ -266,7 +339,10 @@ async fn wait_for_vllm_ready(port: u16) -> bool {
     let client = reqwest::Client::new();
     let url = format!("http://127.0.0.1:{}/health", port);
 
-    for _ in 0..60 {
+    // Wait up to 120 seconds for vLLM to start
+    // First startup takes ~67s due to CUDA graph compilation
+    // (captures 67 mixed prefill-decode graphs + 35 decode graphs)
+    for _ in 0..120 {
         sleep(Duration::from_secs(1)).await;
 
         match client.get(&url).send().await {
