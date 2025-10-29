@@ -76,25 +76,26 @@ vllama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA
 
 ### Development Environment
 
-**Port Conflict Warning (Fedora):**
+**Port Configuration (Fedora):**
 
-vllama uses port 11434 (same as Ollama). During development on Fedora, you must stop Ollama to avoid conflicts:
+vllama uses port 11435 by default (Ollama uses 11434), allowing both to run simultaneously.
 
+**Running alongside Ollama (default):**
 ```bash
-# Stop Ollama service
-sudo systemctl stop ollama
+# vllama on default port 11435
+vllama serve --model <model>
 
-# Verify port is free
-lsof -i:11434  # Should return nothing
+# Ollama on its default port 11434
+ollama serve
 ```
 
-**Running both Ollama and vllama:**
+**Using vllama as Ollama drop-in replacement:**
 ```bash
-# vllama on default port
-vllama serve --model <model> --port 11434
+# Stop Ollama first
+sudo systemctl stop ollama
 
-# Ollama on alternate port (for benchmarking)
-OLLAMA_HOST=127.0.0.1:11435 ollama serve
+# Run vllama on Ollama's port
+vllama serve --model <model> --port 11434
 ```
 
 ### Testing
@@ -195,7 +196,7 @@ vllama/
 cargo run --release -- serve --model <model-name> --gpu-memory-utilization 0.9
 
 # Test generation
-curl -X POST localhost:11434/api/generate \
+curl -X POST localhost:11435/api/generate \
   -d '{"model":"<model>","prompt":"What is 2+2?","stream":false}'
 
 # Document in docs/MODELS.md with:

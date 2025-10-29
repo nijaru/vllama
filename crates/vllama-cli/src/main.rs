@@ -36,7 +36,7 @@ enum Commands {
         #[arg(long, default_value = "127.0.0.1", help = "Server host address")]
         host: String,
 
-        #[arg(short, long, default_value = "11434", help = "Server port")]
+        #[arg(short, long, default_value = "11435", help = "Server port (11435 works alongside Ollama on 11434)")]
         port: u16,
 
         #[arg(long, help = "Model to load in vLLM (e.g., meta-llama/Llama-3.2-1B-Instruct)")]
@@ -178,7 +178,7 @@ async fn run_command(command: Commands, output_mode: OutputMode, config: config:
         } => {
             // Apply config defaults when CLI flags not provided
             let host = if host == "127.0.0.1" { config.server.host } else { host };
-            let port = if port == 11434 { config.server.port } else { port };
+            let port = if port == 11435 { config.server.port } else { port };
             let vllm_port = if vllm_port == 8100 { config.server.vllm_port } else { vllm_port };
             let model = model.or(config.model.default_model);
             let max_num_seqs = if max_num_seqs == 256 { config.model.max_num_seqs } else { max_num_seqs };

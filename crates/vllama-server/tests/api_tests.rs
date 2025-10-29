@@ -2,7 +2,7 @@ use reqwest;
 use serde_json::json;
 use std::time::Duration;
 
-const BASE_URL: &str = "http://localhost:11434";
+const BASE_URL: &str = "http://localhost:11435";
 const TIMEOUT: Duration = Duration::from_secs(30);
 
 fn get_client() -> reqwest::Client {

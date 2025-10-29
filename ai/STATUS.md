@@ -65,7 +65,7 @@ _Last Updated: 2025-10-29_
 - Shutdown cleanup verified:
   - Both processes killed (uv parent + python vLLM child)
   - GPU memory released (back to 33 MiB baseline)
-  - Ports released (11434 and 8100)
+  - Ports released (11435 and 8100)
 
 ### Critical Bugs Found & Fixed
 
@@ -245,30 +245,28 @@ What was created (a302f51):
 
 ## Development Notes
 
-### Port Conflicts (Fedora)
+### Port Configuration (Fedora)
 
 **Important for development on Fedora:**
 
-vllama uses port 11434 (same as Ollama). You must stop Ollama before starting vllama:
+vllama now uses port 11435 by default (Ollama uses 11434), allowing both to run simultaneously.
 
+**Running alongside Ollama (default):**
 ```bash
-# Stop Ollama service
-sudo systemctl stop ollama
+# vllama on default port 11435
+vllama serve --model <model>
 
-# Or disable auto-start
-sudo systemctl disable ollama
-
-# Verify port is free
-lsof -i:11434  # Should return nothing
+# Ollama on its default port 11434
+ollama serve
 ```
 
-**For benchmarking (need both running):**
+**Using vllama as Ollama drop-in replacement:**
 ```bash
-# vllama on default port
-vllama serve --model <model> --port 11434
+# Stop Ollama first
+sudo systemctl stop ollama
 
-# Ollama on alternate port
-OLLAMA_HOST=127.0.0.1:11435 ollama serve
+# Run vllama on Ollama's port
+vllama serve --model <model> --port 11434
 ```
 
 This is documented in:

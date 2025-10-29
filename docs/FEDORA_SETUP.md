@@ -4,7 +4,9 @@
 
 ### Port Conflict Warning
 
-**IMPORTANT:** vllama uses port 11434 (same as Ollama). If you have Ollama installed and running, you must stop it first:
+**NOTE:** vllama uses port 11435 by default, which allows it to run alongside Ollama (port 11434).
+
+**If using vllama as drop-in replacement (`--port 11434`):** Stop Ollama first:
 
 ```bash
 # Stop Ollama service
@@ -13,17 +15,26 @@ sudo systemctl stop ollama
 # Or disable it from auto-starting
 sudo systemctl disable ollama
 
-# Verify port 11434 is free
-lsof -i:11434  # Should return nothing
+# Verify port 11435 is free
+lsof -i:11435  # Should return nothing
 ```
 
-**During development:** You can run both vllama and Ollama by using different ports:
+**Running alongside Ollama (default):**
 ```bash
-# vllama on default port 11434
-vllama serve --model <model> --port 11434
+# vllama on default port 11435
+vllama serve --model <model>
 
-# Ollama on alternate port
-OLLAMA_HOST=127.0.0.1:11435 ollama serve
+# Ollama on its default port 11434
+ollama serve
+```
+
+**Using vllama as Ollama drop-in replacement:**
+```bash
+# Stop Ollama first
+sudo systemctl stop ollama
+
+# Run vllama on Ollama's port
+vllama serve --model <model> --port 11434
 ```
 
 ## Quick Setup
@@ -73,7 +84,7 @@ cargo build --release
 
 **In another terminal, test generation:**
 ```bash
-curl -X POST http://localhost:11434/api/generate \
+curl -X POST http://localhost:11435/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "model": "Qwen/Qwen2.5-0.5B-Instruct",
@@ -129,16 +140,16 @@ python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
 
 ### Port Already in Use
 
-**Port 11434 conflict (usually Ollama):**
+**Port 11435 conflict (usually Ollama):**
 ```bash
-# Check what's using port 11434
-lsof -i:11434
+# Check what's using port 11435
+lsof -i:11435
 
 # Stop Ollama if it's running
 sudo systemctl stop ollama
 
-# Or kill any process on port 11434
-lsof -ti:11434 | xargs kill -9
+# Or kill any process on port 11435
+lsof -ti:11435 | xargs kill -9
 ```
 
 **Port 8100 conflict (vLLM):**

@@ -20,7 +20,7 @@ vllama includes a benchmark tool to compare performance against Ollama.
 ### Setup
 
 **Prerequisites:**
-- vllama running on port 11434 (default)
+- vllama running on port 11435 (default)
 - Ollama running on port 11435 (alternate port to avoid conflict)
 - Same model loaded in both systems
 
@@ -40,7 +40,7 @@ OLLAMA_HOST=127.0.0.1:11435 ollama pull llama3.1:8b
 # One command - auto-starts everything
 cargo run --release --bin vllama -- serve \
   --model meta-llama/Llama-3.1-8B-Instruct \
-  --port 11434
+  --port 11435
 ```
 
 **Run benchmark:**

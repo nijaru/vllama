@@ -163,14 +163,14 @@ async fn test_my_performance() {
 ## Troubleshooting
 
 ### "Server not available after retries"
-- Make sure the server is running: `curl http://localhost:11434/health`
+- Make sure the server is running: `curl http://localhost:11435/health`
 - Check server logs for errors
 - Verify vLLM is running on port 8100
 
 ### "No models running"
 - Tests require at least one model loaded
 - Start server with: `./target/release/vllama serve --model <model>`
-- Verify with: `curl http://localhost:11434/api/ps`
+- Verify with: `curl http://localhost:11435/api/ps`
 
 ### Performance tests failing
 - Performance thresholds are tuned for RTX 4090

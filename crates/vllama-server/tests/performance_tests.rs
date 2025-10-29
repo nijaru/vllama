@@ -3,7 +3,7 @@ use serde_json::json;
 use std::time::{Duration, Instant};
 use tokio::task::JoinSet;
 
-const BASE_URL: &str = "http://localhost:11434";
+const BASE_URL: &str = "http://localhost:11435";
 const TIMEOUT: Duration = Duration::from_secs(60);
 
 fn get_client() -> reqwest::Client {

@@ -28,7 +28,7 @@ All benchmarks run on:
 
 1. **Start vllama server:**
 ```bash
-vllama serve --model <model-name> --port 11434
+vllama serve --model <model-name> --port 11435
 ```
 
 2. **Start Ollama (for comparison):**

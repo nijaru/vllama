@@ -104,22 +104,22 @@ docker compose logs vllama
 
 **Expected result:**
 - All services start successfully
-- vllama accessible on localhost:11434
+- vllama accessible on localhost:11435
 - Health check passes
 
 **Potential issues:**
 - NVIDIA runtime not configured
 - GPU not accessible in container
-- Port conflicts (11434, 8100, 9090, 3000)
+- Port conflicts (11435, 8100, 9090, 3000)
 - Volume mount permissions
 
 **Validation:**
 ```bash
 # Test health endpoint
-curl http://localhost:11434/health
+curl http://localhost:11435/health
 
 # Test inference
-curl -X POST http://localhost:11434/api/generate \
+curl -X POST http://localhost:11435/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "model": "Qwen/Qwen2.5-1.5B-Instruct",
@@ -170,13 +170,13 @@ sudo journalctl -u vllama -f
 **Validation:**
 ```bash
 # Test health
-curl http://localhost:11434/health
+curl http://localhost:11435/health
 
 # Check process
 ps aux | grep vllama
 
 # Check listening ports
-ss -tulpn | grep 11434
+ss -tulpn | grep 11435
 ```
 
 ### 4. Nginx Configuration Test
@@ -326,7 +326,7 @@ docker compose up -d
 # 3. Wait for health
 echo "Waiting for vllama to be ready..."
 for i in {1..30}; do
-    if curl -sf http://localhost:11434/health > /dev/null; then
+    if curl -sf http://localhost:11435/health > /dev/null; then
         echo "vllama is healthy"
         break
     fi
@@ -335,7 +335,7 @@ done
 
 # 4. Test inference
 echo "Testing inference..."
-RESPONSE=$(curl -sf -X POST http://localhost:11434/api/generate \
+RESPONSE=$(curl -sf -X POST http://localhost:11435/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "model": "Qwen/Qwen2.5-1.5B-Instruct",
@@ -416,7 +416,7 @@ curl -I https://llm.example.com | grep -E "Strict-Transport|X-Content"
 ### Configuration Errors to Watch
 
 1. **Port conflicts:**
-   - 11434 (vllama API)
+   - 11435 (vllama API)
    - 8100 (vLLM internal)
    - 9090 (Prometheus)
    - 3000 (Grafana)

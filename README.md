@@ -7,7 +7,7 @@ The fastest LLM inference server for Linux + NVIDIA GPUs.
 ## Why vllama?
 
 - **29.95x faster** - Concurrent requests obliterate Ollama (vLLM's PagedAttention)
-- **Ollama-compatible** - Drop-in replacement, same API (port 11434)
+- **Ollama-compatible** - Drop-in replacement, same API (default port 11435, runs alongside Ollama)
 - **Production-focused** - Enhanced monitoring, JSON logging, error handling
 - **Simple setup** - Easier than raw vLLM, faster than Ollama
 - **Proven performance** - Industry-standard vLLM engine (Amazon, LinkedIn, Red Hat)
@@ -16,6 +16,8 @@ The fastest LLM inference server for Linux + NVIDIA GPUs.
 **Target users:** Production deployments, high-throughput APIs, multi-user applications
 
 **Current Status:** 0.0.5 - Core functionality tested and working (22 tests passing). Deployment configs available in `deployment-configs` branch. See [ai/STATUS.md](ai/STATUS.md) and [TESTING_STATUS.md](TESTING_STATUS.md) for details.
+
+**Port:** Default is 11435 (runs alongside Ollama on 11434). For true drop-in replacement, use `--port 11434` (stop Ollama first).
 
 ## Platform Support
 
@@ -57,7 +59,7 @@ cargo run --release --bin vllama -- serve --model Qwen/Qwen2.5-1.5B-Instruct
 # Or use 7B model with custom settings
 cargo run --release --bin vllama -- serve \
   --model Qwen/Qwen2.5-7B-Instruct \
-  --port 11434 \
+  --port 11435 \
   --vllm-port 8100 \
   --max-num-seqs 256 \
   --gpu-memory-utilization 0.9
@@ -67,7 +69,7 @@ cargo run --release --bin vllama -- serve \
 
 ```bash
 # Generate text
-curl -X POST http://localhost:11434/api/generate \
+curl -X POST http://localhost:11435/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "model": "Qwen/Qwen2.5-1.5B-Instruct",
@@ -76,7 +78,7 @@ curl -X POST http://localhost:11434/api/generate \
   }'
 
 # Stream responses
-curl -X POST http://localhost:11434/api/generate \
+curl -X POST http://localhost:11435/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "model": "Qwen/Qwen2.5-1.5B-Instruct",
@@ -155,7 +157,7 @@ Models auto-download on first request. Any HuggingFace model compatible with vLL
 ```
 Client Request
     ↓
-vllama Server (Rust, port 11434)
+vllama Server (Rust, port 11435)
     ↓ OpenAI API
 vLLM OpenAI Server (Python, port 8100)
     ↓

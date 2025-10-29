@@ -103,7 +103,7 @@ fn default_host() -> String {
 }
 
 fn default_port() -> u16 {
-    11434
+    11435  // Ollama-compatible API on next port (works alongside Ollama on 11434)
 }
 
 fn default_vllm_port() -> u16 {
@@ -232,7 +232,7 @@ mod tests {
     fn test_default_config() {
         let config = Config::default();
         assert_eq!(config.server.host, "127.0.0.1");
-        assert_eq!(config.server.port, 11434);
+        assert_eq!(config.server.port, 11435);
         assert_eq!(config.model.gpu_memory_utilization, 0.9);
     }
 

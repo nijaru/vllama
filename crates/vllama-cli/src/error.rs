@@ -101,8 +101,8 @@ pub fn handle_error(err: anyhow::Error) -> UserError {
         return UserError::new("Port already in use")
             .with_context("Another process is already using the specified port.")
             .with_suggestion("Stop existing vllama/vLLM instances: pkill -9 vllm")
-            .with_suggestion("Use a different port: --port 11435")
-            .with_suggestion("Check what's using the port: lsof -i :11434");
+            .with_suggestion("Use a different port: --port <port>")
+            .with_suggestion("Check what's using the port: lsof -i :<port>");
     }
 
     // vLLM startup failed
