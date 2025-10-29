@@ -87,18 +87,34 @@ curl -X POST http://localhost:11434/api/generate \
 
 ## Performance
 
-**RTX 4090 Performance:**
-- **Sequential:** 232ms (4.4x faster than Ollama)
-- **Concurrent (5):** 0.217s (29.95x faster than Ollama)
-- **Concurrent (50):** 2.115s (23.6 req/s throughput)
-- Optimized for GPU acceleration with PagedAttention
-- Efficient memory management
+**Why vllama is faster:**
+- **29.95x faster** concurrent inference (vLLM's PagedAttention)
+- **Continuous batching** - GPU never idles
+- **Optimized CUDA kernels** - FlashAttention-2
+- **2-3x better memory efficiency** - serve more users per GPU
 
-See [docs/MODELS.md](docs/MODELS.md) for per-model performance characteristics.
+**Benchmark results (RTX 4090):**
+- **Sequential:** 4.4x faster than Ollama (232ms vs 1024ms)
+- **Concurrent (5):** 29.95x faster than Ollama (0.217s vs 6.50s)
+- **High concurrency (50):** 23.6 req/s sustained throughput
 
-**Benchmarking:**
-Use `vllama bench` to compare vllama vs Ollama on your hardware.
-See [BENCHMARKS.md](BENCHMARKS.md) for detailed setup, methodology, and result templates.
+**Real-world impact:**
+- **Chatbot (100 users):** 1 GPU instead of 7 GPUs (6 GPU cost savings)
+- **Content generation (1,000 items):** <1 minute instead of 17 minutes
+
+See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for comprehensive benchmarks, methodology, and hardware recommendations.
+
+**Run benchmarks yourself:**
+```bash
+# Sequential
+vllama bench <model> --iterations 10
+
+# Concurrent (5 requests)
+vllama bench <model> --iterations 50 --concurrency 5
+
+# Save results as JSON
+vllama bench <model> --iterations 50 --concurrency 5 --json > results.json
+```
 
 ## Supported APIs
 
@@ -203,6 +219,7 @@ cargo fmt
 ## Documentation
 
 **User Documentation:**
+- [docs/PERFORMANCE.md](docs/PERFORMANCE.md) - Comprehensive performance benchmarks and analysis
 - [docs/MODELS.md](docs/MODELS.md) - Model compatibility and requirements
 - [docs/BENCHMARKS.md](docs/BENCHMARKS.md) - Benchmarking guide
 - [docs/FEDORA_SETUP.md](docs/FEDORA_SETUP.md) - Fedora installation guide
