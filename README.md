@@ -8,13 +8,14 @@ The fastest LLM inference server for Linux + NVIDIA GPUs.
 
 - 🚀 **29.95x faster** - Concurrent requests obliterate Ollama (vLLM's PagedAttention)
 - 🔌 **Ollama-compatible** - Drop-in replacement, same API (port 11434)
-- 🎯 **Production-ready** - Built for Linux deployments with NVIDIA GPUs
+- 🎯 **Production-ready** - Enhanced monitoring, JSON logging, error handling
 - 🔧 **Simple setup** - Easier than raw vLLM, faster than Ollama
 - 📊 **Proven performance** - Industry-standard vLLM engine (Amazon, LinkedIn, Red Hat)
+- 📈 **Observability** - Request tracking, latency metrics, GPU monitoring
 
 **Target users:** Production deployments, high-throughput APIs, multi-user applications
 
-**Current Status:** 0.0.4 - Model validation complete - See [ai/STATUS.md](ai/STATUS.md) for details
+**Current Status:** 0.0.5 - Production polish complete - See [ai/STATUS.md](ai/STATUS.md) for details
 
 ## Platform Support
 

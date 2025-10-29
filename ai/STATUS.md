@@ -4,7 +4,7 @@ _Last Updated: 2025-10-29_
 
 ## Current State
 
-**Version:** 0.0.5 (in progress)
+**Version:** 0.0.5
 **Focus:** Linux + NVIDIA production deployments
 
 **Strategy:** "Ollama's DX with vLLM's performance"
@@ -68,21 +68,28 @@ _Last Updated: 2025-10-29_
 - ✅ Documented GPU memory requirements (7B needs 90% utilization)
 - ✅ Documented authentication requirements for Llama models
 
-**0.0.5 In Progress (Production Polish):**
+**0.0.5 Complete (Production Polish):**
 - ✅ Modern CLI UX with clean symbols (→ • ✓ ✗), no emojis
 - ✅ Progress indicators (spinner for vLLM startup)
 - ✅ Output modes: --quiet, --json for scripting
-- ✅ vLLM output redirected to log file (clean terminal)
+- ✅ vLLM output redirected to vllm.log (clean terminal)
 - ✅ Consistent branding (vllama lowercase everywhere)
-- 🎯 **Current:** Error handling improvements
-- Pending: Enhanced /health endpoint with GPU info
-- Pending: Structured logging (JSON format)
+- ✅ User-friendly error messages with helpful suggestions
+- ✅ Enhanced /health endpoint (GPU, memory, models, vLLM status)
+- ✅ Structured JSON logging (VLLAMA_LOG_FORMAT=json)
+- ✅ Request tracking (UUIDs, latency, status codes)
 
-**Competitive Analysis Complete:**
+**Competitive Analysis:**
 - Positioning: "Ollama's DX with vLLM's performance"
 - Moat: 20-30x faster concurrent (PagedAttention), production focus
-- Target: Linux production deployments, high-throughput APIs
+- Target: Linux production deployments, high-throughput APIs, observability
 - NOT competing: Cross-platform, GUI, beginner ease
+
+**Next (0.0.6 - Performance Documentation):**
+- Benchmark tested models (Qwen, Mistral)
+- Document when vllama wins vs Ollama
+- Create docs/PERFORMANCE.md
+- Prove the 20-30x performance claims
 
 ## Blockers
 

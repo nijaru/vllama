@@ -13,7 +13,7 @@ _Last Updated: 2025-10-29_
 - [x] README updated with model references
 - [x] Modern CLI UX (clean symbols, progress indicators, no emojis)
 
-**Current version:** 0.0.4 → 0.0.5 (in progress)
+**Current version:** 0.0.5
 
 ---
 
@@ -38,9 +38,9 @@ _Last Updated: 2025-10-29_
 
 ---
 
-## 0.0.5 - Production Polish (In Progress)
+## ✅ 0.0.5 - Production Polish (Complete!)
 
-**Goal:** Make it production-ready
+**Goal:** Make it production-ready ✅
 
 ### CLI Improvements ✅
 - [x] Clean symbols (→ • ✓ ✗) - no emojis
@@ -48,28 +48,29 @@ _Last Updated: 2025-10-29_
 - [x] Colored output (errors in red, success in green)
 - [x] --quiet flag (minimal output)
 - [x] --json flag (structured output for scripting)
-- [x] Redirect vLLM output to log file
+- [x] Redirect vLLM output to vllm.log
+- [x] Consistent branding (vllama lowercase)
 
-### Error Handling (Current Focus)
-- [ ] User-friendly error messages
-- [ ] Helpful suggestions (e.g., "Model not found → Try: vllama pull <model>")
-- [ ] Don't leak stack traces to users
-- [ ] Proper exit codes (0=success, 1=error, 2=invalid input)
-- [ ] Consistent error format across commands
+### Error Handling ✅
+- [x] User-friendly error messages
+- [x] Helpful suggestions (e.g., "Model not found → Try checking spelling")
+- [x] Don't leak stack traces to users
+- [x] Proper exit codes (0=success, 1=error, 2=invalid input)
+- [x] Context-aware error handling (OOM, port conflicts, missing deps)
 
-### Monitoring
-- [ ] Enhanced /health endpoint
-  - Show loaded models
-  - Show GPU status (name, memory, utilization)
-  - Show memory usage
-  - Show vLLM version
-- [ ] Structured logging (tracing JSON format)
-  - Request IDs
-  - Latencies
-  - Performance metrics
-- [ ] /metrics endpoint (Prometheus format) - Optional for 0.0.5
+### Monitoring ✅
+- [x] Enhanced /health endpoint
+  - [x] Loaded models
+  - [x] GPU status (name, memory, utilization via nvidia-smi)
+  - [x] System memory usage
+  - [x] vLLM server connectivity status
+- [x] Structured JSON logging (VLLAMA_LOG_FORMAT=json)
+  - [x] Request IDs (UUID v4)
+  - [x] Latency tracking (milliseconds)
+  - [x] HTTP status codes
+  - [x] Method and URI logging
 
-**Tag:** v0.0.5 when done
+**Tagged:** v0.0.5 ✅
 
 ---
 
