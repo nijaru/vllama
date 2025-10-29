@@ -1,0 +1,47 @@
+# Prometheus configuration for vllama monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'vllama-monitor'
+
+# Alerting configuration (optional)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - 'alertmanager:9093'
+
+# Load rules (alerts and recording rules)
+rule_files:
+  # - 'rules/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # vllama health endpoint
+  - job_name: 'vllama'
+    static_configs:
+      - targets: ['vllama:11434']
+    metrics_path: '/health'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Node exporter (system metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+
+  # NVIDIA GPU metrics (optional)
+  - job_name: 'nvidia-gpu'
+    static_configs:
+      - targets: ['dcgm-exporter:9400']
+    scrape_interval: 15s
+
+  # Caddy metrics (if using Caddy)
+  - job_name: 'caddy'
+    static_configs:
+      - targets: ['caddy:9091']
+    metrics_path: '/metrics'
+    scrape_interval: 30s

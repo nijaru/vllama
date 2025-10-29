@@ -216,6 +216,20 @@ cargo run --release --bin vllama -- bench \
 cargo fmt
 ```
 
+## Production Deployment
+
+**Quick Start (Docker):**
+```bash
+git clone https://github.com/nijaru/vllama.git
+cd vllama
+docker compose up -d
+```
+
+**Comprehensive guides:**
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) - **Production deployment** (Docker, systemd, nginx)
+- [docs/MONITORING.md](docs/MONITORING.md) - **Monitoring setup** (Prometheus, Grafana, alerts)
+- [docs/SECURITY.md](docs/SECURITY.md) - **Security best practices** (HTTPS, auth, rate limiting)
+
 ## Documentation
 
 **User Documentation:**
