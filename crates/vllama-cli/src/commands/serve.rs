@@ -141,7 +141,7 @@ pub async fn run(
 
     match output_mode {
         OutputMode::Normal => {
-            println!("{}", output::section("Starting Ollama API"));
+            println!("{}", output::section("Starting vllama API"));
             println!("{}", output::success(&format!("Listening on http://{}:{}", host, port)));
             println!();
             println!("  Endpoints:");
