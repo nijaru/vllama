@@ -1,10 +1,13 @@
 mod commands;
+mod error;
 mod output;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use commands::*;
+use error::{handle_error, EXIT_SUCCESS};
 use output::OutputMode;
+use std::process::ExitCode;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser)]
@@ -119,7 +122,7 @@ enum Commands {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> ExitCode {
     let cli = Cli::parse();
 
     init_tracing(cli.verbose);
@@ -133,7 +136,18 @@ async fn main() -> Result<()> {
         OutputMode::Normal
     };
 
-    match cli.command {
+    // Run command and handle errors gracefully
+    if let Err(err) = run_command(cli.command, output_mode).await {
+        let user_error = handle_error(err);
+        eprintln!("{}", user_error);
+        return user_error.exit_code();
+    }
+
+    ExitCode::from(EXIT_SUCCESS)
+}
+
+async fn run_command(command: Commands, output_mode: OutputMode) -> Result<()> {
+    match command {
         Commands::Serve {
             host,
             port,
