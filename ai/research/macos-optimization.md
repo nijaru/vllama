@@ -38,7 +38,7 @@
 Platform Detection
     ↓
 ┌─────────────────────────────┐
-│   vLLama Server (Rust)      │
+│   vllama Server (Rust)      │
 │   - Ollama-compatible API   │
 └─────────────────────────────┘
          ↓
@@ -164,7 +164,7 @@ if model_exists(&gguf_model) {
 # Developer on macOS
 ollama serve              # Dev/testing
 # ... deploy to Linux server
-# ... switch to vLLama for production
+# ... switch to vllama for production
 
 # Two different tools, different APIs
 ```

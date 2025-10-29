@@ -1,10 +1,10 @@
-# vLLama Project Instructions
+# vllama Project Instructions
 
-## What is vLLama?
+## What is vllama?
 
 **Ollama's DX with vLLM's performance**
 
-vLLama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA GPUs. We use vLLM for GPU inference and provide an Ollama-compatible API with better developer experience than raw vLLM.
+vllama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA GPUs. We use vLLM for GPU inference and provide an Ollama-compatible API with better developer experience than raw vLLM.
 
 **Target users:** Production deployments on Linux with NVIDIA GPUs
 
@@ -30,7 +30,7 @@ vLLama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA
 
 ```
 ┌─────────┐      ┌────────────┐      ┌──────────────┐      ┌─────┐
-│ Client  │ ───> │ vLLama     │ ───> │ vLLM OpenAI  │ ───> │ GPU │
+│ Client  │ ───> │ vllama     │ ───> │ vLLM OpenAI  │ ───> │ GPU │
 │         │      │ (Rust)     │      │ Server       │      │     │
 └─────────┘      └────────────┘      └──────────────┘      └─────┘
                   Ollama API          (Python/uv)

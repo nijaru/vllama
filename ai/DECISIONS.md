@@ -107,7 +107,7 @@ _Architectural decisions and their rationale_
 **Rationale:**
 - vLLM has official OpenAI-compatible server
 - Don't need custom wrappers around official tools
-- Simpler architecture: Client → vLLama → vLLM OpenAI Server
+- Simpler architecture: Client → vllama → vLLM OpenAI Server
 - Less code to maintain
 - Uses industry-standard OpenAI API
 
@@ -161,7 +161,7 @@ _Architectural decisions and their rationale_
 - 2 engines = 2x complexity (vLLM + llama.cpp, HF + GGUF)
 
 **Positioning:**
-- vLLama: Production Linux deployments
+- vllama: Production Linux deployments
 - Ollama: macOS/hobbyists/developers
 - Different markets, different tools
 - Don't try to be everything to everyone

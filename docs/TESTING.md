@@ -1,6 +1,6 @@
 # Testing Guide
 
-This document describes the testing infrastructure and how to run tests for vLLama.
+This document describes the testing infrastructure and how to run tests for vllama.
 
 ## Test Types
 
@@ -24,7 +24,7 @@ Tests that verify API endpoints work correctly with a running server.
 **Location:** `crates/vllama-server/tests/api_tests.rs`
 
 **Prerequisites:**
-- vLLama server must be running
+- vllama server must be running
 - At least one model loaded in vLLM
 
 **Run:**
@@ -54,7 +54,7 @@ Automated tests that verify performance doesn't degrade.
 **Location:** `crates/vllama-server/tests/performance_tests.rs`
 
 **Prerequisites:**
-- vLLama server must be running
+- vllama server must be running
 - At least one model loaded in vLLM
 - GPU available for best results
 

@@ -1,4 +1,4 @@
-# vLLama Setup on Fedora + RTX 4090
+# vllama Setup on Fedora + RTX 4090
 
 ## Quick Setup
 
@@ -25,7 +25,7 @@ cd ~/github/nijaru/vllama/python
 uv pip install -r requirements.txt
 ```
 
-### 4. Build vLLama
+### 4. Build vllama
 ```bash
 cd ~/github/nijaru/vllama
 cargo build --release
@@ -105,7 +105,7 @@ cargo build --release
 
 Once setup is complete, you're ready to:
 1. Start the vLLM service
-2. Start the vLLama server
+2. Start the vllama server
 3. Make API requests (see README.md for examples)
 4. Test performance
 

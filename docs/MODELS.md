@@ -1,6 +1,6 @@
 # Model Compatibility
 
-This document lists tested models and their compatibility with vLLama.
+This document lists tested models and their compatibility with vllama.
 
 ## Tested Models
 
@@ -145,11 +145,11 @@ vllama serve --model Qwen/Qwen2.5-7B-Instruct --gpu-memory-utilization 0.9
 - Qwen 7B: ~70s download + 5s load
 - Mistral 7B: ~131s download + 5s load
 
-The model will finish loading in the background. The vLLM server will be available on port 8100 even if vLLama wrapper times out.
+The model will finish loading in the background. The vLLM server will be available on port 8100 even if vllama wrapper times out.
 
 ## Future Model Support
 
-vLLama supports any model compatible with vLLM. Untested but likely to work:
+vllama supports any model compatible with vLLM. Untested but likely to work:
 - Other Qwen 2.5 sizes (3B, 14B, 32B)
 - Other Mistral variants (Mixtral, Mistral Nemo)
 - Llama 3.1 (70B with multi-GPU)

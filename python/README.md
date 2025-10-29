@@ -1,10 +1,10 @@
-# vLLama Python Environment
+# vllama Python Environment
 
-This directory contains Python dependencies for vLLama's inference backend.
+This directory contains Python dependencies for vllama's inference backend.
 
 ## Architecture
 
-vLLama uses vLLM's official OpenAI-compatible server for inference. The Python environment is managed by `uv` and spawned automatically by the Rust binary.
+vllama uses vLLM's official OpenAI-compatible server for inference. The Python environment is managed by `uv` and spawned automatically by the Rust binary.
 
 **No manual Python service needed** - the `vllama serve` command handles everything.
 
@@ -28,13 +28,13 @@ This installs:
 The Rust binary automatically manages the Python environment:
 
 ```bash
-# vLLama handles Python environment via uv
+# vllama handles Python environment via uv
 cargo run --release -- serve --model meta-llama/Llama-3.2-1B-Instruct
 
 # Under the hood:
 # 1. Rust spawns: uv run --directory python python -m vllm.entrypoints.openai.api_server
 # 2. vLLM server starts on port 8100
-# 3. vLLama serves Ollama-compatible API on port 11434
+# 3. vllama serves Ollama-compatible API on port 11434
 ```
 
 ## Manual Testing (Optional)

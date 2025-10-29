@@ -23,7 +23,7 @@ _Created: 2025-10-22_
 ### Why NOT macOS (Yet)?
 
 **Fundamental limitations:**
-- Both vLLama and Ollama would use llama.cpp on macOS
+- Both vllama and Ollama would use llama.cpp on macOS
 - llama.cpp is the performance ceiling for both
 - Realistic gains: 10-20% single request, 2-5x concurrent
 - Ollama has years of macOS optimization
@@ -60,7 +60,7 @@ _Created: 2025-10-22_
 
 ### 0.0.4 - Model Validation (1 week)
 
-**Goal:** Verify vLLama works with popular models
+**Goal:** Verify vllama works with popular models
 
 **Tasks:**
 - [ ] Test Llama 3.1 8B
@@ -115,7 +115,7 @@ _Created: 2025-10-22_
   - GPU utilization
 - [ ] Create docs/PERFORMANCE.md
   - Performance comparison vs Ollama
-  - When to use vLLama vs Ollama
+  - When to use vllama vs Ollama
   - Hardware recommendations
   - Optimization tips
 - [ ] Update README
@@ -197,7 +197,7 @@ _Created: 2025-10-22_
 
 ## Controversial Opinion: Maybe We Don't Need macOS
 
-**vLLama's niche:** Production GPU deployments on Linux
+**vllama's niche:** Production GPU deployments on Linux
 
 **Target users:**
 - Companies running LLM APIs

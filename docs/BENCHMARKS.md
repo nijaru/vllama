@@ -1,26 +1,26 @@
-# vLLama Benchmarking Guide
+# vllama Benchmarking Guide
 
 ## Platform-Specific Performance
 
 **Expected performance varies significantly by platform:**
 
-| Platform | vLLama Performance | Notes |
+| Platform | vllama Performance | Notes |
 |----------|-------------------|-------|
 | **Linux + NVIDIA GPU** | 10x+ faster than Ollama | Production performance, GPU acceleration via vLLM |
 | **macOS (Apple Silicon)** | Similar to Ollama | Both run CPU-only, vLLM advantage minimal |
 | **macOS (Intel)** | Similar to Ollama | Both run CPU-only, vLLM advantage minimal |
 | **Linux (CPU-only)** | Slightly faster | vLLM optimizations help but limited without GPU |
 
-**Key Insight:** vLLama's speed advantage comes from vLLM's GPU acceleration. On CPU-only platforms (macOS), expect similar performance to Ollama.
+**Key Insight:** vllama's speed advantage comes from vLLM's GPU acceleration. On CPU-only platforms (macOS), expect similar performance to Ollama.
 
 ## Running Benchmarks
 
-vLLama includes a benchmark tool to compare performance against Ollama.
+vllama includes a benchmark tool to compare performance against Ollama.
 
 ### Setup
 
 **Prerequisites:**
-- vLLama running on port 11434 (default)
+- vllama running on port 11434 (default)
 - Ollama running on port 11435 (alternate port to avoid conflict)
 - Same model loaded in both systems
 
@@ -35,7 +35,7 @@ OLLAMA_HOST=127.0.0.1:11435 ollama serve
 OLLAMA_HOST=127.0.0.1:11435 ollama pull llama3.1:8b
 ```
 
-**Start vLLama:**
+**Start vllama:**
 ```bash
 # One command - auto-starts everything
 cargo run --release --bin vllama -- serve \
@@ -63,7 +63,7 @@ The benchmark reports:
 ### Caveats
 
 ⚠️ **What This Tests:**
-- vLLama: Ollama API → vLLM OpenAI server (port 8100 by default)
+- vllama: Ollama API → vLLM OpenAI server (port 8100 by default)
 - Ollama: Ollama API on port 11435
 
 ⚠️ **Limitations:**
@@ -104,10 +104,10 @@ Following best practices from the benchmark guidelines:
 When publishing benchmark results, use this template:
 
 ```markdown
-## Benchmark: vLLama vs Ollama
+## Benchmark: vllama vs Ollama
 
 **Systems Compared:**
-- vLLama: [version, vLLM backend version, configuration]
+- vllama: [version, vLLM backend version, configuration]
 - Ollama: [version, backend, configuration]
 
 **Hardware:**
@@ -129,7 +129,7 @@ When publishing benchmark results, use this template:
 - Streaming: Disabled
 
 **Results:**
-| Metric | vLLama | Ollama | Difference |
+| Metric | vllama | Ollama | Difference |
 |--------|--------|--------|------------|
 | Median latency | X ms | Y ms | Z.Zx |
 | Avg latency | X ms | Y ms | Z.Zx |
@@ -138,7 +138,7 @@ When publishing benchmark results, use this template:
 
 **Caveats:**
 - Token counts estimated, not measured
-- vLLama uses vLLM OpenAI server backend
+- vllama uses vLLM OpenAI server backend
 - Ollama uses its own inference backend
 - No concurrent requests tested
 - Performance differences depend heavily on platform (GPU vs CPU)

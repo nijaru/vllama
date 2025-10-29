@@ -1,10 +1,10 @@
-# vLLama
+# vllama
 
 **Ollama's DX with vLLM's performance**
 
 The fastest LLM inference server for Linux + NVIDIA GPUs.
 
-## Why vLLama?
+## Why vllama?
 
 - 🚀 **29.95x faster** - Concurrent requests obliterate Ollama (vLLM's PagedAttention)
 - 🔌 **Ollama-compatible** - Drop-in replacement, same API (port 11434)
@@ -42,7 +42,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 cd python
 uv sync --extra vllm  # Installs vLLM and dependencies
 
-# Build vLLama
+# Build vllama
 cd ..
 cargo build --release
 ```
@@ -96,7 +96,7 @@ curl -X POST http://localhost:11434/api/generate \
 See [docs/MODELS.md](docs/MODELS.md) for per-model performance characteristics.
 
 **Benchmarking:**
-Use `vllama bench` to compare vLLama vs Ollama on your hardware.
+Use `vllama bench` to compare vllama vs Ollama on your hardware.
 See [BENCHMARKS.md](BENCHMARKS.md) for detailed setup, methodology, and result templates.
 
 ## Supported APIs
@@ -138,7 +138,7 @@ Models auto-download on first request. Any HuggingFace model compatible with vLL
 ```
 Client Request
     ↓
-vLLama Server (Rust, port 11434)
+vllama Server (Rust, port 11434)
     ↓ OpenAI API
 vLLM OpenAI Server (Python, port 8100)
     ↓
@@ -164,7 +164,7 @@ mise install python@3.12
 mise use python@3.12
 cd python && uv sync && uv pip install vllm
 
-# 3. Build vLLama
+# 3. Build vllama
 cargo build --release
 
 # 4. Run (see Quick Start above)
@@ -183,7 +183,7 @@ cargo test
 
 **Benchmark:**
 ```bash
-# Compare vLLama vs Ollama (Ollama must run on port 11435)
+# Compare vllama vs Ollama (Ollama must run on port 11435)
 # Terminal 1: Start Ollama on alternate port
 OLLAMA_HOST=127.0.0.1:11435 ollama serve
 

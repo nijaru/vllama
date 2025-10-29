@@ -1,7 +1,7 @@
 # Engine Comparison: vLLM vs MAX vs llama.cpp
 
 **Date:** 2025-10-20
-**Purpose:** Validate engine choices for vLLama
+**Purpose:** Validate engine choices for vllama
 
 ---
 

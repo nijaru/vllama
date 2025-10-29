@@ -1,10 +1,10 @@
 # Status
 
-_Last Updated: 2025-10-28_
+_Last Updated: 2025-10-29_
 
 ## Current State
 
-**Version:** 0.0.4
+**Version:** 0.0.5 (in progress)
 **Focus:** Linux + NVIDIA production deployments
 
 **Strategy:** "Ollama's DX with vLLM's performance"
@@ -25,7 +25,7 @@ _Last Updated: 2025-10-28_
 - ✅ /api/tags (list models)
 - ✅ /api/ps (queries vLLM for running models)
 - ✅ /api/show (queries vLLM for model metadata)
-- ✅ /api/version (returns vLLama version)
+- ✅ /api/version (returns vllama version)
 - ❌ /api/embeddings (skipped for 0.0.x - RAG use case)
 
 **Platform support:**
@@ -37,7 +37,7 @@ _Last Updated: 2025-10-28_
 **Phase 4+ cleanup:**
 - Removed all custom wrappers (1,165 lines deleted)
 - Uses vLLM official OpenAI server directly
-- Clean architecture: Client → vLLama (Rust) → vLLM OpenAI Server → GPU
+- Clean architecture: Client → vllama (Rust) → vLLM OpenAI Server → GPU
 - uv integration for Python environment management
 - Proper chat completion endpoint (uses vLLM's /v1/chat/completions)
 
@@ -68,11 +68,21 @@ _Last Updated: 2025-10-28_
 - ✅ Documented GPU memory requirements (7B needs 90% utilization)
 - ✅ Documented authentication requirements for Llama models
 
-**Next (0.0.5 - Production Polish):**
-- Error handling improvements
-- CLI enhancements
-- Health monitoring
-- Structured logging
+**0.0.5 In Progress (Production Polish):**
+- ✅ Modern CLI UX with clean symbols (→ • ✓ ✗), no emojis
+- ✅ Progress indicators (spinner for vLLM startup)
+- ✅ Output modes: --quiet, --json for scripting
+- ✅ vLLM output redirected to log file (clean terminal)
+- ✅ Consistent branding (vllama lowercase everywhere)
+- 🎯 **Current:** Error handling improvements
+- Pending: Enhanced /health endpoint with GPU info
+- Pending: Structured logging (JSON format)
+
+**Competitive Analysis Complete:**
+- Positioning: "Ollama's DX with vLLM's performance"
+- Moat: 20-30x faster concurrent (PagedAttention), production focus
+- Target: Linux production deployments, high-throughput APIs
+- NOT competing: Cross-platform, GUI, beginner ease
 
 ## Blockers
 

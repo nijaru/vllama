@@ -22,7 +22,7 @@ pub async fn run(
 
     // Show header in normal mode
     if output_mode == OutputMode::Normal {
-        println!("vLLama v{}\n", env!("CARGO_PKG_VERSION"));
+        println!("vllama v{}\n", env!("CARGO_PKG_VERSION"));
     }
 
     if !no_vllm {

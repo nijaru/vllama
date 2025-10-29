@@ -1,6 +1,6 @@
 # TODO
 
-_Last Updated: 2025-10-28_
+_Last Updated: 2025-10-29_
 
 ## Completed So Far ✅
 
@@ -11,14 +11,15 @@ _Last Updated: 2025-10-28_
 - [x] Model validation (Qwen 2.5: 0.5B, 1.5B, 7B; Mistral 7B v0.3)
 - [x] docs/MODELS.md with compatibility matrix
 - [x] README updated with model references
+- [x] Modern CLI UX (clean symbols, progress indicators, no emojis)
 
-**Current version:** 0.0.4
+**Current version:** 0.0.4 → 0.0.5 (in progress)
 
 ---
 
 ## ✅ 0.0.4 - Model Validation (Complete!)
 
-**Goal:** Verify vLLama works with popular models ✅
+**Goal:** Verify vllama works with popular models ✅
 
 ### Tested Models ✅
 - [x] **Qwen 2.5 0.5B** - Works! (50% GPU, 0.9 GiB, 819K cache)
@@ -37,36 +38,66 @@ _Last Updated: 2025-10-28_
 
 ---
 
-## 0.0.5 - Production Polish (Next Week)
+## 0.0.5 - Production Polish (In Progress)
 
 **Goal:** Make it production-ready
 
-### Error Handling
-- [ ] User-friendly error messages
-- [ ] Helpful suggestions (e.g., "Try: vllama pull <model>")
-- [ ] Don't leak internal errors
-- [ ] Consistent error format
+### CLI Improvements ✅
+- [x] Clean symbols (→ • ✓ ✗) - no emojis
+- [x] Progress indicators (spinner for vLLM startup)
+- [x] Colored output (errors in red, success in green)
+- [x] --quiet flag (minimal output)
+- [x] --json flag (structured output for scripting)
+- [x] Redirect vLLM output to log file
 
-### CLI Improvements
-- [ ] Better help text
-- [ ] Colored output (errors in red, success in green)
-- [ ] Progress indicators for downloads
-- [ ] Model preload flag (--preload)
+### Error Handling (Current Focus)
+- [ ] User-friendly error messages
+- [ ] Helpful suggestions (e.g., "Model not found → Try: vllama pull <model>")
+- [ ] Don't leak stack traces to users
+- [ ] Proper exit codes (0=success, 1=error, 2=invalid input)
+- [ ] Consistent error format across commands
 
 ### Monitoring
-- [ ] /health endpoint improvements
+- [ ] Enhanced /health endpoint
   - Show loaded models
-  - Show GPU status
+  - Show GPU status (name, memory, utilization)
   - Show memory usage
-- [ ] /metrics endpoint (Prometheus format)
-  - Request counts
-  - Latencies
-  - GPU utilization
-- [ ] Structured logging (JSON)
+  - Show vLLM version
+- [ ] Structured logging (tracing JSON format)
   - Request IDs
+  - Latencies
   - Performance metrics
+- [ ] /metrics endpoint (Prometheus format) - Optional for 0.0.5
 
 **Tag:** v0.0.5 when done
+
+---
+
+## 0.0.5.5 - Competitive Analysis Findings
+
+**Key insight:** vllama needs to be "Ollama's DX with vLLM's performance"
+
+**Competitive Moat:**
+- **Performance:** 20-30x faster concurrent (vLLM PagedAttention)
+- **Production focus:** Built for Linux servers, not hobbyists
+- **Advanced features:** Can expose vLLM features Ollama can't (LoRA, speculative decoding)
+
+**NOT competing on:**
+- Cross-platform (Ollama wins on Mac/Windows)
+- GUI (LMStudio wins)
+- Beginner ease (Ollama wins)
+
+**Target users:**
+- Production Linux deployments
+- High-throughput APIs
+- Multi-user concurrent serving
+- Teams that need observability
+
+**Critical gaps to close:**
+1. Observability (monitoring, metrics, logging)
+2. Error handling (user-friendly)
+3. Reliability (graceful shutdown, auto-restart)
+4. Performance documentation (prove the claims)
 
 ---
 
@@ -82,7 +113,7 @@ _Last Updated: 2025-10-28_
   - GPU utilization
 - [ ] Create docs/PERFORMANCE.md
   - Performance vs Ollama comparison table
-  - When to use vLLama (production, high throughput)
+  - When to use vllama (production, high throughput)
   - When to use Ollama (hobbyist, macOS)
   - Hardware recommendations
 

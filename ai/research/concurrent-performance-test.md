@@ -62,7 +62,7 @@
 - Backend: llama.cpp
 - Model: Qwen/Qwen2.5-1.5B-Instruct
 
-### vLLama New Performance
+### vllama New Performance
 
 - 5 concurrent: 0.217s
 - Backend: vLLM with optimizations

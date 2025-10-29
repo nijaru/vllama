@@ -1,4 +1,4 @@
-# Competitive Strategy: vLLama vs Ollama
+# Competitive Strategy: vllama vs Ollama
 
 _Created: 2025-10-22_
 
