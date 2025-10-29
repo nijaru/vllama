@@ -118,13 +118,41 @@ _Last Updated: 2025-10-29_
 - Target: Linux production deployments, high-throughput APIs, observability
 - NOT competing: Cross-platform, GUI, beginner ease
 
-**Next (0.0.7 - First Production User):**
-- Deployment documentation (Docker, systemd, nginx)
-- Security guidance (input validation, rate limiting, auth)
-- Prometheus/Grafana monitoring setup
-- Share on r/LocalLLaMA, r/rust, HN
-- Get real user feedback and bug reports
-- Stay in 0.0.x until production-proven
+**0.0.7 (Production Infrastructure) - Complete:**
+- ✅ Docker deployment (a302f51)
+  - Dockerfile with NVIDIA CUDA support
+  - docker-compose.yml with monitoring stack
+  - Health checks and automatic restarts
+  - Volume mounts for model caching
+- ✅ Systemd service
+  - deployment/vllama.service for bare-metal
+  - Security hardening, automatic restart
+  - Proper logging to journald
+- ✅ Reverse proxy configurations
+  - Nginx: HTTPS, rate limiting (10 req/s), auth
+  - Caddy: Automatic HTTPS, simpler config
+- ✅ Monitoring infrastructure
+  - Prometheus + Grafana setup
+  - GPU monitoring (NVIDIA DCGM)
+  - Alert rules (downtime, latency, OOM)
+  - Log aggregation guides (Loki, ELK)
+- ✅ Security documentation
+  - HTTPS/TLS configuration
+  - Authentication (API keys, mTLS, OAuth)
+  - Rate limiting and input validation
+  - Firewall configuration, incident response
+- ✅ Comprehensive deployment guides
+  - docs/DEPLOYMENT.md (600+ lines)
+  - docs/MONITORING.md (400+ lines)
+  - docs/SECURITY.md (500+ lines)
+
+**Next (0.0.8 - Ready for Users):**
+- Tag v0.0.7 release
+- Test Docker deployment end-to-end
+- Share on r/LocalLLaMA, r/rust
+- Create GitHub issues templates
+- Wait for first user feedback
+- Stay in 0.0.x until real-world proven
 
 ## Blockers
 
