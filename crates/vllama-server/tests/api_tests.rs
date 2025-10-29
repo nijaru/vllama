@@ -43,8 +43,10 @@ async fn test_health_endpoint() {
         .expect("Failed to send request");
 
     assert!(response.status().is_success());
-    let body = response.text().await.expect("Failed to read body");
-    assert_eq!(body, "OK");
+    let json: serde_json::Value = response.json().await.expect("Failed to parse JSON");
+    assert_eq!(json["status"], "ok");
+    assert!(json.get("vllm_status").is_some());
+    assert!(json.get("gpu").is_some());
 }
 
 #[tokio::test]
@@ -63,7 +65,7 @@ async fn test_version_endpoint() {
 
     let json: serde_json::Value = response.json().await.expect("Failed to parse JSON");
     assert!(json.get("version").is_some());
-    assert_eq!(json["version"], "0.1.0");
+    assert_eq!(json["version"], "0.0.5");
 }
 
 #[tokio::test]
