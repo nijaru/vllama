@@ -6,16 +6,16 @@ The fastest LLM inference server for Linux + NVIDIA GPUs.
 
 ## Why vllama?
 
-- 🚀 **29.95x faster** - Concurrent requests obliterate Ollama (vLLM's PagedAttention)
-- 🔌 **Ollama-compatible** - Drop-in replacement, same API (port 11434)
-- 🎯 **Production-ready** - Enhanced monitoring, JSON logging, error handling
-- 🔧 **Simple setup** - Easier than raw vLLM, faster than Ollama
-- 📊 **Proven performance** - Industry-standard vLLM engine (Amazon, LinkedIn, Red Hat)
-- 📈 **Observability** - Request tracking, latency metrics, GPU monitoring
+- **29.95x faster** - Concurrent requests obliterate Ollama (vLLM's PagedAttention)
+- **Ollama-compatible** - Drop-in replacement, same API (port 11434)
+- **Production-focused** - Enhanced monitoring, JSON logging, error handling
+- **Simple setup** - Easier than raw vLLM, faster than Ollama
+- **Proven performance** - Industry-standard vLLM engine (Amazon, LinkedIn, Red Hat)
+- **Observability** - Request tracking, latency metrics, GPU monitoring
 
 **Target users:** Production deployments, high-throughput APIs, multi-user applications
 
-**Current Status:** 0.0.5 - Production polish complete - See [ai/STATUS.md](ai/STATUS.md) for details
+**Current Status:** 0.0.5 - Core functionality tested and working (22 tests passing). Deployment configs available in `deployment-configs` branch. See [ai/STATUS.md](ai/STATUS.md) and [TESTING_STATUS.md](TESTING_STATUS.md) for details.
 
 ## Platform Support
 
@@ -218,17 +218,15 @@ cargo fmt
 
 ## Production Deployment
 
-**Quick Start (Docker):**
-```bash
-git clone https://github.com/nijaru/vllama.git
-cd vllama
-docker compose up -d
-```
+**Note:** Deployment configurations (Docker, systemd, reverse proxy, monitoring) are available in the `deployment-configs` branch but have not been tested end-to-end. See [docs/TESTING_DEPLOYMENT.md](docs/TESTING_DEPLOYMENT.md) for status and testing checklist.
 
-**Comprehensive guides:**
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) - **Production deployment** (Docker, systemd, nginx)
-- [docs/MONITORING.md](docs/MONITORING.md) - **Monitoring setup** (Prometheus, Grafana, alerts)
-- [docs/SECURITY.md](docs/SECURITY.md) - **Security best practices** (HTTPS, auth, rate limiting)
+For production deployment, we recommend:
+1. Start with the basic installation above
+2. Run behind a reverse proxy (nginx/caddy) with SSL
+3. Use systemd for process management
+4. Monitor with the `/health` endpoint
+
+See the `deployment-configs` branch for example configurations that need validation before production use.
 
 ## Documentation
 
@@ -248,18 +246,27 @@ docker compose up -d
 ## Contributing
 
 **Current focus (0.0.x development):**
-- ✅ Model validation (Qwen 2.5, Mistral tested - see docs/MODELS.md)
-- 🎯 Production polish (errors, CLI, monitoring)
-- 🎯 Performance documentation
-- 🎯 First production user
+- Model validation (Qwen 2.5, Mistral tested - see docs/MODELS.md)
+- Deployment validation (Docker, systemd, monitoring configs need testing)
+- Getting real user feedback
 
 **Strategy:** Linux-only, vLLM-based, production-focused
 
-See [ai/TODO.md](ai/TODO.md), [ai/STATUS.md](ai/STATUS.md), and [CLAUDE.md](CLAUDE.md) for details.
+See [ai/TODO.md](ai/TODO.md), [ai/STATUS.md](ai/STATUS.md), and [CLAUDE.md](CLAUDE.md) for development roadmap and current priorities.
+
+Contributions welcome! Please check [ai/TODO.md](ai/TODO.md) for current priorities and open an issue to discuss major changes.
 
 ## License
 
-[Add your license here]
+This project is licensed under the Elastic License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+**Summary:**
+- Free to use, modify, and distribute
+- Free for commercial use and self-hosting
+- Cannot be provided as a managed/hosted service without permission
+- Source code is available for review and modification
+
+For questions about licensing or commercial partnerships, please open an issue.
 
 ## Credits
 
