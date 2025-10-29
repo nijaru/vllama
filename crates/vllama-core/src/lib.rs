@@ -7,7 +7,7 @@ pub mod error;
 pub mod downloader;
 pub mod openai;
 
-pub use downloader::{DownloadProgress, ModelDownloader};
+pub use downloader::{CachedModel, DownloadProgress, ModelDownloader};
 pub use error::{Error, Result};
 pub use hardware::{Hardware, HardwareType, GpuInfo};
 pub use model::{ModelHandle, ModelInfo, ModelFormat};

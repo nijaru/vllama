@@ -180,13 +180,13 @@ async fn run_command(command: Commands, output_mode: OutputMode) -> Result<()> {
             generate::execute(model, prompt, stream).await?;
         }
         Commands::List => {
-            list::execute().await?;
+            list::execute(output_mode).await?;
         }
         Commands::Pull { model } => {
-            pull::execute(model).await?;
+            pull::execute(model, output_mode).await?;
         }
         Commands::Rm { model } => {
-            rm::execute(model).await?;
+            rm::execute(model, output_mode).await?;
         }
         Commands::Show {
             model,
