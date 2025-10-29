@@ -4,10 +4,11 @@ _Last Updated: 2025-10-29_
 
 ## Current State
 
-**Version:** 0.0.5 (experimental)
-**Focus:** Linux + NVIDIA GPU deployments (experimental)
+**Version:** 0.0.5 (tested - core functionality working!)
+**Focus:** Linux + NVIDIA GPU deployments (core validated, deployment untested)
 
-**Reality Check:** Still in 0.0.x - extremely experimental until real-world proven
+**Reality Check:** Core vllama server now tested and working, critical bugs fixed.
+**Deployment:** Infrastructure configs moved to `deployment-configs` branch (untested)
 
 **Strategy:** "Ollama's DX with vLLM's performance"
 - Target: Production Linux with NVIDIA GPUs (when proven)
@@ -32,8 +33,69 @@ _Last Updated: 2025-10-29_
 - ❌ /api/embeddings (skipped for 0.0.x - RAG use case)
 
 **Platform support:**
-- ✅ Linux + NVIDIA GPU (production ready)
+- ✅ Linux + NVIDIA GPU (core tested, deployment untested)
 - ⚠️ macOS CPU-only (experimental, slow - need llama.cpp)
+
+## Testing Status (2025-10-29)
+
+### What's Actually Tested ✅
+
+**Unit Tests:** 14 tests, ALL PASSING
+- Config file loading and merging
+- Error message formatting
+- CLI output formatting (symbols, no emojis)
+- Model downloader creation
+- OpenAI client creation
+- Request serialization
+
+**Integration Tests:** 8 tests, ALL PASSING
+- test_health_endpoint
+- test_version_endpoint
+- test_ps_endpoint
+- test_show_endpoint
+- test_show_endpoint_not_found
+- test_chat_endpoint_non_streaming
+- test_generate_endpoint_non_streaming
+- test_openai_chat_completions
+
+**Manual Server Tests:** ✅ VERIFIED
+- Server startup (Qwen/Qwen2.5-0.5B-Instruct, 64s < 120s timeout)
+- Health endpoint returns JSON with status, vllm_status, GPU info
+- Generation endpoint works (model responds correctly)
+- Shutdown cleanup verified:
+  - Both processes killed (uv parent + python vLLM child)
+  - GPU memory released (back to 33 MiB baseline)
+  - Ports released (11434 and 8100)
+
+### Critical Bugs Found & Fixed
+
+**Bug 1: Startup Timeout Too Short (60s → 120s)**
+- vLLM first startup takes ~67s due to CUDA graph compilation
+- Old timeout: 60s (caused false failures)
+- New timeout: 120s (allows startup to complete)
+- Fixed in commit 4cd44b8
+
+**Bug 2: Orphaned vLLM Subprocess on Error**
+- `uv run` spawns Python subprocess
+- Old code only killed parent, leaving vLLM orphaned
+- Required manual `kill -9` to clean up
+- Fixed with process group killing (SIGTERM then SIGKILL)
+- Fixed in commit 4cd44b8
+
+### What's NOT Tested ❌
+
+**Deployment Infrastructure** (moved to `deployment-configs` branch):
+- Docker, docker-compose
+- Systemd service
+- Nginx/Caddy reverse proxy configs
+- Prometheus/Grafana monitoring
+- All deployment documentation
+
+**Long-running stability:**
+- Memory leaks
+- Log file rotation (vllm.log grows unbounded)
+- Multi-day uptime
+- Error recovery under load
 
 ## What Worked
 
