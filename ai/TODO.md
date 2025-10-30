@@ -126,6 +126,35 @@ the importance of actual testing over assumptions.
 
 ---
 
+## ✅ 0.0.6 - Full OpenAI API Support (Complete!)
+
+**Goal:** Add complete OpenAI-compatible API for maximum tool compatibility ✅
+
+### API Endpoints Added ✅
+- [x] GET /v1/models - List available models from vLLM
+- [x] POST /v1/completions - Text completion (streaming + non-streaming)
+- [x] POST /v1/chat/completions - Already existed, now properly documented
+
+### Benefits ✅
+- [x] Works with LangChain, LlamaIndex, and other OpenAI-compatible tools
+- [x] Single server, both APIs on same port
+- [x] No code duplication - vLLM already speaks OpenAI
+- [x] Drop-in replacement for both Ollama AND OpenAI
+
+### Documentation ✅
+- [x] README.md updated with dual API examples
+- [x] CLAUDE.md updated with stack description
+- [x] ai/STATUS.md organized by API type
+- [x] Startup message shows both API sets
+
+### Pending
+- [ ] Integration tests for new endpoints (/v1/models, /v1/completions)
+- [ ] Performance testing with OpenAI clients
+
+**Status:** Implementation complete, tests pending. Ready for tag once tests added.
+
+---
+
 ## 0.0.5.5 - Competitive Analysis Findings
 
 **Key insight:** vllama needs to be "Ollama's DX with vLLM's performance"
@@ -154,32 +183,25 @@ the importance of actual testing over assumptions.
 
 ---
 
-## 0.0.6 - Performance Documentation (Week 3)
+## Future: Performance Documentation
 
-**Goal:** Document the performance advantage
+**Goal:** Document the performance advantage (mostly done in docs/PERFORMANCE.md)
 
-### Benchmarking
-- [ ] Benchmark all tested models
-  - Sequential performance
-  - Concurrent (5, 10, 50 requests)
-  - Memory usage per concurrency level
-  - GPU utilization
-- [ ] Create docs/PERFORMANCE.md
-  - Performance vs Ollama comparison table
-  - When to use vllama (production, high throughput)
-  - When to use Ollama (hobbyist, macOS)
-  - Hardware recommendations
+**Completed:**
+- ✅ docs/PERFORMANCE.md exists with benchmarks
+- ✅ Performance claims in README
+- ✅ Hardware recommendations documented
 
-### Update README
-- [ ] Performance claims with evidence
-- [ ] Link to benchmarks
-- [ ] Clear positioning: "Linux + NVIDIA production deployments"
+**Potential improvements:**
+- [ ] More models benchmarked
+- [ ] Higher concurrency testing (100, 200 requests)
+- [ ] Memory usage graphs
 
-**Tag:** v0.0.6 when done
+**Priority:** Low - basic documentation exists, improve if users request it
 
 ---
 
-## 0.0.7 - First Production User (Week 4)
+## Future: First Production User
 
 **Goal:** Get someone using this in production
 
@@ -208,7 +230,28 @@ the importance of actual testing over assumptions.
 
 ## Next Steps - Immediate Priorities
 
-### 0.0.6 - Deployment Validation (NEXT)
+### 0.0.6 - Integration Tests for OpenAI API (CURRENT)
+
+**Goal:** Add integration tests for the new OpenAI endpoints
+
+**Tasks:**
+- [ ] Add test for GET /v1/models
+  - Verify response format
+  - Check model list matches vLLM
+- [ ] Add test for POST /v1/completions (non-streaming)
+  - Verify response format
+  - Check completion quality
+- [ ] Add test for POST /v1/completions (streaming)
+  - Verify SSE format
+  - Check stream chunks
+
+**Effort:** 1-2 hours
+
+**Tag:** v0.0.6 when complete
+
+---
+
+### 0.0.7 - Deployment Validation (NEXT)
 
 **Goal:** Test the deployment configs we created
 
@@ -241,7 +284,7 @@ the importance of actual testing over assumptions.
 
 ---
 
-### 0.0.7+ - Real User Feedback (CRITICAL)
+### 0.0.8+ - Real User Feedback (CRITICAL)
 
 **Goal:** Get 1-3 real users deploying vllama
 
