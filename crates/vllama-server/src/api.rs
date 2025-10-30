@@ -201,6 +201,70 @@ pub struct OpenAIDelta {
     pub content: Option<String>,
 }
 
+// OpenAI Models API
+#[derive(Debug, Serialize)]
+pub struct OpenAIModelsResponse {
+    pub object: String,
+    pub data: Vec<OpenAIModel>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAIModel {
+    pub id: String,
+    pub object: String,
+    pub created: u64,
+    pub owned_by: String,
+}
+
+// OpenAI Completions API (legacy)
+#[derive(Debug, Deserialize)]
+pub struct OpenAICompletionRequest {
+    pub model: String,
+    pub prompt: String,
+    #[serde(default)]
+    pub stream: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_tokens: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub temperature: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub top_p: Option<f32>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAICompletionResponse {
+    pub id: String,
+    pub object: String,
+    pub created: u64,
+    pub model: String,
+    pub choices: Vec<OpenAICompletionChoice>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub usage: Option<OpenAIUsage>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAICompletionChoice {
+    pub text: String,
+    pub index: usize,
+    pub finish_reason: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAICompletionChunk {
+    pub id: String,
+    pub object: String,
+    pub created: u64,
+    pub model: String,
+    pub choices: Vec<OpenAICompletionChunkChoice>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAICompletionChunkChoice {
+    pub text: String,
+    pub index: usize,
+    pub finish_reason: Option<String>,
+}
+
 pub async fn generate(
     State(state): State<ServerState>,
     Json(req): Json<GenerateApiRequest>,
@@ -1034,6 +1098,203 @@ pub async fn ps(State(_state): State<ServerState>) -> Response {
         Err(e) => {
             error!("Failed to query vLLM models: {}", e);
             Json(PsResponse { models: vec![] }).into_response()
+        }
+    }
+}
+
+pub async fn openai_models(
+    State(_state): State<ServerState>,
+) -> Response {
+    info!("OpenAI models list request");
+
+    #[derive(Debug, Deserialize)]
+    struct VllmModelsResponse {
+        data: Vec<VllmModelInfo>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct VllmModelInfo {
+        id: String,
+        #[allow(dead_code)]
+        created: u64,
+    }
+
+    let client = reqwest::Client::new();
+    match client.get("http://127.0.0.1:8100/v1/models").send().await {
+        Ok(response) => {
+            match response.json::<VllmModelsResponse>().await {
+                Ok(vllm_models) => {
+                    let models_data: Vec<OpenAIModel> = vllm_models.data.into_iter().map(|m| {
+                        OpenAIModel {
+                            id: m.id,
+                            object: "model".to_string(),
+                            created: m.created,
+                            owned_by: "vllama".to_string(),
+                        }
+                    }).collect();
+
+                    Json(OpenAIModelsResponse {
+                        object: "list".to_string(),
+                        data: models_data,
+                    }).into_response()
+                }
+                Err(e) => {
+                    error!("Failed to parse vLLM models response: {}", e);
+                    (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(serde_json::json!({
+                            "error": {
+                                "message": "Failed to parse vLLM models response",
+                                "type": "internal_error",
+                                "code": "model_list_error"
+                            }
+                        }))
+                    ).into_response()
+                }
+            }
+        }
+        Err(e) => {
+            error!("Failed to query vLLM models: {}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({
+                    "error": {
+                        "message": format!("Failed to query vLLM: {}", e),
+                        "type": "internal_error",
+                        "code": "vllm_connection_error"
+                    }
+                }))
+            ).into_response()
+        }
+    }
+}
+
+pub async fn openai_completions(
+    State(state): State<ServerState>,
+    Json(req): Json<OpenAICompletionRequest>,
+) -> Response {
+    info!("OpenAI completions request for model: {}", req.model);
+
+    let mut gen_req = GenerateRequest::new(
+        0,  // Request ID
+        req.model.clone(),
+        req.prompt.clone(),
+    );
+
+    let mut gen_opts = GenerateOptions::default();
+    if let Some(temp) = req.temperature {
+        gen_opts.sampling.temperature = temp;
+    }
+    if let Some(max_tokens) = req.max_tokens {
+        gen_opts.sampling.max_tokens = Some(max_tokens);
+    }
+    if let Some(top_p) = req.top_p {
+        gen_opts.sampling.top_p = top_p;
+    }
+    gen_req.options = gen_opts;
+
+    let request_id = format!("cmpl-{:x}", std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos());
+    let created = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
+    if req.stream {
+        let engine = state.engine.lock().await;
+        match engine.generate_stream(gen_req).await {
+            Ok(stream) => {
+                use futures::StreamExt;
+
+                let event_stream = stream::unfold(
+                    (stream, req.model.clone(), request_id.clone(), created, false),
+                    |(mut s, model, id, timestamp, done)| async move {
+                        if done {
+                            return None;
+                        }
+                        match s.next().await {
+                            Some(Ok(resp)) => {
+                                let chunk = OpenAICompletionChunk {
+                                    id: id.clone(),
+                                    object: "text_completion".to_string(),
+                                    created: timestamp,
+                                    model: model.clone(),
+                                    choices: vec![OpenAICompletionChunkChoice {
+                                        text: resp.text.clone(),
+                                        index: 0,
+                                        finish_reason: if resp.finished { Some("stop".to_string()) } else { None },
+                                    }],
+                                };
+
+                                let json = serde_json::to_string(&chunk).unwrap();
+                                let event = Event::default()
+                                    .data(json);
+
+                                Some((Ok::<_, Infallible>(event), (s, model, id, timestamp, resp.finished)))
+                            }
+                            Some(Err(e)) => {
+                                error!("Stream error: {}", e);
+                                None
+                            }
+                            None => None,
+                        }
+                    }
+                );
+
+                Sse::new(event_stream).into_response()
+            }
+            Err(e) => {
+                error!("Failed to generate stream: {}", e);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({
+                        "error": {
+                            "message": format!("Failed to generate: {}", e),
+                            "type": "internal_error",
+                            "code": "generation_error"
+                        }
+                    }))
+                ).into_response()
+            }
+        }
+    } else {
+        let engine = state.engine.lock().await;
+        match engine.generate(gen_req).await {
+            Ok(resp) => {
+                let response = OpenAICompletionResponse {
+                    id: request_id,
+                    object: "text_completion".to_string(),
+                    created,
+                    model: req.model,
+                    choices: vec![OpenAICompletionChoice {
+                        text: resp.text,
+                        index: 0,
+                        finish_reason: "stop".to_string(),
+                    }],
+                    usage: Some(OpenAIUsage {
+                        prompt_tokens: 0,  // vLLM doesn't return this easily
+                        completion_tokens: 0,
+                        total_tokens: 0,
+                    }),
+                };
+
+                Json(response).into_response()
+            }
+            Err(e) => {
+                error!("Failed to generate: {}", e);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({
+                        "error": {
+                            "message": format!("Failed to generate: {}", e),
+                            "type": "internal_error",
+                            "code": "generation_error"
+                        }
+                    }))
+                ).into_response()
+            }
         }
     }
 }

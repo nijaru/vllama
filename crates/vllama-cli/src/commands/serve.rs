@@ -144,11 +144,15 @@ pub async fn run(
             println!("{}", output::section("Starting vllama API"));
             println!("{}", output::success(&format!("Listening on http://{}:{}", host, port)));
             println!();
-            println!("  Endpoints:");
+            println!("  Ollama API:");
             println!("{}", output::bullet("POST /api/generate"));
             println!("{}", output::bullet("POST /api/chat"));
-            println!("{}", output::bullet("POST /v1/chat/completions"));
             println!("{}", output::bullet("GET  /api/ps"));
+            println!();
+            println!("  OpenAI API:");
+            println!("{}", output::bullet("GET  /v1/models"));
+            println!("{}", output::bullet("POST /v1/completions"));
+            println!("{}", output::bullet("POST /v1/chat/completions"));
             println!();
             println!("Press Ctrl+C to stop");
             println!();

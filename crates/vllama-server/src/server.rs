@@ -66,6 +66,7 @@ impl Server {
             });
 
         let app = Router::new()
+            // Ollama-compatible API
             .route("/api/generate", post(api::generate))
             .route("/api/chat", post(api::chat))
             .route("/api/pull", post(api::pull))
@@ -73,7 +74,11 @@ impl Server {
             .route("/api/tags", get(api::tags))
             .route("/api/ps", get(api::ps))
             .route("/api/version", get(api::version))
+            // OpenAI-compatible API
+            .route("/v1/models", get(api::openai_models))
+            .route("/v1/completions", post(api::openai_completions))
             .route("/v1/chat/completions", post(api::openai_chat_completions))
+            // Health check
             .route("/health", get(api::health))
             .layer(CorsLayer::permissive())
             .layer(trace_layer)

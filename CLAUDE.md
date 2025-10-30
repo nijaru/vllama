@@ -61,8 +61,8 @@ vllama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA
 **Stack:**
 - Rust CLI + server (Axum)
 - vLLM for GPU inference (via uv)
-- Ollama-compatible API
-- OpenAI API passthrough
+- Dual API support: Ollama-compatible + OpenAI-compatible
+- Direct passthrough to vLLM's OpenAI server
 
 ## Key Decisions (ai/DECISIONS.md)
 

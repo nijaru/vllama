@@ -24,7 +24,9 @@ _Last Updated: 2025-10-29_
 
 **Benchmarks:** See docs/PERFORMANCE.md for comparisons and detailed methodology
 
-**Endpoints:**
+**API Endpoints:**
+
+Ollama-compatible:
 - ✅ /api/generate (streaming + non-streaming)
 - ✅ /api/chat (proper chat templates via vLLM)
 - ✅ /api/pull (HuggingFace model downloads)
@@ -32,7 +34,14 @@ _Last Updated: 2025-10-29_
 - ✅ /api/ps (queries vLLM for running models)
 - ✅ /api/show (queries vLLM for model metadata)
 - ✅ /api/version (returns vllama version)
-- ❌ /api/embeddings (skipped for 0.0.x - RAG use case)
+
+OpenAI-compatible:
+- ✅ /v1/models (list available models)
+- ✅ /v1/completions (text completion, streaming + non-streaming)
+- ✅ /v1/chat/completions (chat, streaming + non-streaming)
+
+Future:
+- ❌ /api/embeddings, /v1/embeddings (skipped for 0.0.x - RAG use case)
 
 **Platform support:**
 - ✅ Linux + NVIDIA GPU (core tested, deployment untested)

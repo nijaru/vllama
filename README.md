@@ -65,7 +65,7 @@ cargo run --release --bin vllama -- serve \
   --gpu-memory-utilization 0.9
 ```
 
-**Use it:**
+**Use it (Ollama API):**
 
 ```bash
 # Generate text
@@ -76,16 +76,24 @@ curl -X POST http://localhost:11435/api/generate \
     "prompt": "Explain quantum computing in one sentence.",
     "stream": false
   }'
+```
 
-# Stream responses
-curl -X POST http://localhost:11435/api/generate \
+**Or use OpenAI API:**
+
+```bash
+# Chat completion
+curl -X POST http://localhost:11435/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "Qwen/Qwen2.5-1.5B-Instruct",
-    "prompt": "Write a haiku about coding.",
-    "stream": true
+    "messages": [{"role": "user", "content": "Explain quantum computing in one sentence."}]
   }'
+
+# List models
+curl http://localhost:11435/v1/models
 ```
+
+Both APIs work with the same vllama server - use whichever your tools expect!
 
 ## Performance
 
@@ -122,7 +130,9 @@ vllama bench <model> --iterations 50 --concurrency 5 --json > results.json
 
 ## Supported APIs
 
-**Ollama-Compatible:**
+vllama provides **both Ollama-compatible and OpenAI-compatible APIs**, making it a drop-in replacement for either system.
+
+**Ollama-Compatible API:**
 - ✅ `POST /api/generate` - Text generation (streaming + non-streaming)
 - ✅ `POST /api/chat` - Chat completions (streaming + non-streaming)
 - ✅ `POST /api/pull` - Download models from HuggingFace
@@ -130,14 +140,18 @@ vllama bench <model> --iterations 50 --concurrency 5 --json > results.json
 - ✅ `GET /api/tags` - List loaded models
 - ✅ `GET /api/ps` - Running models and performance
 - ✅ `GET /api/version` - Version information
-- ✅ `GET /health` - Health check
 
-**OpenAI-Compatible:**
-- ✅ `POST /v1/chat/completions` - OpenAI chat API
+**OpenAI-Compatible API:**
+- ✅ `GET /v1/models` - List available models
+- ✅ `POST /v1/completions` - Text completion (streaming + non-streaming)
+- ✅ `POST /v1/chat/completions` - Chat completions (streaming + non-streaming)
+
+**Health & Monitoring:**
+- ✅ `GET /health` - Health check
 
 **Out of Scope:**
 - ❌ `/api/push` - Model uploads
-- ❌ `/api/embed` - Embeddings
+- ❌ `/api/embed`, `/v1/embeddings` - Embeddings (future)
 - ❌ `/api/copy`, `/api/delete` - Manual model management
 - ❌ Modelfiles - Use HuggingFace models directly
 
