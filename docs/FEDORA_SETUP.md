@@ -101,11 +101,11 @@ curl -X POST http://localhost:11435/api/generate \
 ## Expected GPU Performance
 
 **RTX 4090 Performance:**
-- **Sequential:** 232ms per request (4.4x faster than Ollama)
-- **Concurrent (5 requests):** 0.217s total (29.95x faster than Ollama)
+- **Sequential:** 232ms per request
+- **Concurrent (5 requests):** 0.217s total
 - **High concurrency (50 requests):** 23.6 req/s sustained throughput
 
-See [docs/PERFORMANCE.md](PERFORMANCE.md) for comprehensive benchmarks.
+See [docs/PERFORMANCE.md](PERFORMANCE.md) for comprehensive benchmarks and comparisons.
 
 ## Continue Development
 

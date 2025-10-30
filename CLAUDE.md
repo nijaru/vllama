@@ -2,9 +2,9 @@
 
 ## What is vllama?
 
-**Ollama's DX with vLLM's performance**
+**High-performance, Ollama-compatible LLM server**
 
-vllama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA GPUs. We use vLLM for GPU inference and provide an Ollama-compatible API with better developer experience than raw vLLM.
+vllama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA GPUs. We use vLLM for GPU inference and provide an Ollama-compatible API with simpler deployment than raw vLLM.
 
 **Target users:** Production deployments on Linux with NVIDIA GPUs
 
@@ -13,8 +13,8 @@ vllama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA
 ## Project Status
 
 **Current:** 0.0.5 (core tested and working!)
-- ✅ Core Ollama API endpoints working
-- ✅ 29.95x faster than Ollama on concurrent requests (validated benchmarks)
+- ✅ Core API endpoints working (Ollama-compatible)
+- ✅ High-performance concurrent inference (validated benchmarks)
 - ✅ Comprehensive testing (22 tests passing: 14 unit + 8 integration)
 - ✅ Critical bugs found and FIXED (timeout, orphaned subprocess)
 - ✅ Model validation (Qwen 2.5: 0.5B, 1.5B, 7B; Mistral 7B)
@@ -66,10 +66,10 @@ vllama is an Ollama-compatible LLM inference server optimized for Linux + NVIDIA
 
 ## Key Decisions (ai/DECISIONS.md)
 
-1. **Linux-only focus** - vLLM beats llama.cpp on NVIDIA GPUs
+1. **Linux-only focus** - vLLM optimized for NVIDIA GPUs
 2. **vLLM over MAX** - More mature, better concurrency (512 vs 248)
-3. **Skip macOS for now** - Would need llama.cpp, modest gains, opportunity cost too high
-4. **Ollama API compatibility** - Drop-in replacement for Ollama users
+3. **Skip macOS for now** - Would need llama.cpp, opportunity cost too high
+4. **Ollama API compatibility** - Familiar API for existing users
 5. **Stay in 0.0.x** - Don't rush to 0.1.0 until production-ready
 
 ## Development Guidelines
@@ -228,13 +228,13 @@ curl -X POST localhost:11435/api/generate \
 - `ai/REALISTIC_NEXT_STEPS.md` - Strategy
 
 **Performance baseline:**
-- 29.95x faster than Ollama (concurrent, facebook/opt-125m)
-- 4.4x faster (sequential, Qwen 1.5B)
+- Concurrent (5 req): 0.217s (facebook/opt-125m)
+- Sequential: 232ms (Qwen 1.5B)
 - RTX 4090, i9-13900KF, 32GB DDR5
 
 **Target positioning:**
-- "Ollama's DX with vLLM's performance"
-- "The fastest LLM server for Linux production"
+- "High-performance, Ollama-compatible LLM server"
+- "Optimized for Linux production deployments"
 - NOT: "Works everywhere" or "Fastest on all platforms"
 
 ## Questions?

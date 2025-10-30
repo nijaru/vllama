@@ -1,16 +1,16 @@
 # vllama
 
-**Ollama's DX with vLLM's performance**
+**High-performance, Ollama-compatible LLM server**
 
-The fastest LLM inference server for Linux + NVIDIA GPUs.
+Fast LLM inference for Linux + NVIDIA GPUs, powered by vLLM.
 
 ## Why vllama?
 
-- **29.95x faster** - Concurrent requests obliterate Ollama (vLLM's PagedAttention)
+- **High-performance** - 29.95x faster concurrent inference (vLLM's PagedAttention)
 - **Ollama-compatible** - Drop-in replacement, same API (default port 11435, runs alongside Ollama)
 - **Production-focused** - Enhanced monitoring, JSON logging, error handling
-- **Simple setup** - Easier than raw vLLM, faster than Ollama
-- **Proven performance** - Industry-standard vLLM engine (Amazon, LinkedIn, Red Hat)
+- **Simple setup** - Easier than raw vLLM, simpler than deploying vLLM directly
+- **Proven engine** - Industry-standard vLLM (Amazon, LinkedIn, Red Hat)
 - **Observability** - Request tracking, latency metrics, GPU monitoring
 
 **Target users:** Production deployments, high-throughput APIs, multi-user applications
@@ -23,10 +23,10 @@ The fastest LLM inference server for Linux + NVIDIA GPUs.
 
 | Platform | Status | Notes |
 |----------|--------|-------|
-| **Linux + NVIDIA GPU** | ✅ Supported | Recommended - 29.95x faster than Ollama |
-| **macOS / Windows** | ❌ Not yet | Use [Ollama](https://ollama.com) (great for these platforms!) |
+| **Linux + NVIDIA GPU** | ✅ Supported | Optimized for production deployments |
+| **macOS / Windows** | ❌ Not yet | Use [Ollama](https://ollama.com) (excellent for these platforms!) |
 
-**Why Linux-only?** vLLM is architecturally superior to llama.cpp on NVIDIA GPUs. macOS would use llama.cpp (same as Ollama) with only modest gains. We focus on where we can truly dominate: Linux production deployments.
+**Why Linux-only?** vLLM leverages NVIDIA GPU architecture for exceptional concurrent performance. For macOS/Windows, we recommend [Ollama](https://ollama.com) - it's excellent for those platforms. vllama focuses on Linux production deployments where vLLM's architecture provides the most benefit.
 
 ## Quick Start
 
@@ -89,16 +89,18 @@ curl -X POST http://localhost:11435/api/generate \
 
 ## Performance
 
-**Why vllama is faster:**
-- **29.95x faster** concurrent inference (vLLM's PagedAttention)
-- **Continuous batching** - GPU never idles
-- **Optimized CUDA kernels** - FlashAttention-2
-- **2-3x better memory efficiency** - serve more users per GPU
+**What makes vllama fast:**
+- **PagedAttention** - vLLM's efficient memory management for concurrent requests
+- **Continuous batching** - GPU stays utilized across requests
+- **Optimized CUDA kernels** - FlashAttention-2 implementation
+- **Efficient memory** - Serve more users per GPU
 
 **Benchmark results (RTX 4090):**
-- **Sequential:** 4.4x faster than Ollama (232ms vs 1024ms)
-- **Concurrent (5):** 29.95x faster than Ollama (0.217s vs 6.50s)
+- **Sequential:** 232ms per request
+- **Concurrent (5):** 0.217s total time
 - **High concurrency (50):** 23.6 req/s sustained throughput
+
+See [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for detailed benchmarks and methodology.
 
 **Real-world impact:**
 - **Chatbot (100 users):** 1 GPU instead of 7 GPUs (6 GPU cost savings)

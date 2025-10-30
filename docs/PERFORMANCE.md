@@ -4,7 +4,7 @@
 
 ## Executive Summary
 
-vllama leverages vLLM's PagedAttention algorithm to deliver **20-30x faster concurrent inference** compared to Ollama on Linux + NVIDIA GPU systems. This performance advantage makes vllama ideal for production deployments serving multiple users simultaneously.
+vllama leverages vLLM's PagedAttention algorithm for high-performance concurrent inference on Linux + NVIDIA GPU systems. These benchmarks compare vllama (vLLM backend) with Ollama (llama.cpp backend) to help you choose the right tool for your use case.
 
 **Key Findings:**
 - **Sequential:** 4.4x faster than Ollama (232ms vs 1024ms - Qwen 1.5B)

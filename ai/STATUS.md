@@ -10,17 +10,19 @@ _Last Updated: 2025-10-29_
 **Reality Check:** Core vllama server now tested and working, critical bugs fixed.
 **Deployment:** Infrastructure configs moved to `deployment-configs` branch (untested)
 
-**Strategy:** "Ollama's DX with vLLM's performance"
+**Strategy:** "High-performance, Ollama-compatible LLM server"
 - Target: Production Linux with NVIDIA GPUs (when proven)
-- NOT targeting: macOS/hobbyists (Ollama great there)
+- NOT targeting: macOS/hobbyists (recommend Ollama for these platforms)
 - NOT targeting: Researchers (use raw vLLM)
 - NOT claiming: Production-ready (needs real users first)
 
 **Performance (RTX 4090, 30% GPU utilization):**
-- Sequential: 232ms (4.4x faster than Ollama - Qwen 1.5B) ✅
-- Concurrent (5): 0.217s (29.95x faster than Ollama 6.50s - facebook/opt-125m) ✅✅✅
-- Concurrent (50): 2.115s (maintains 23.6 req/s throughput - facebook/opt-125m) ✅
-- Streaming: 0.617s (1.6x faster than Ollama - Qwen 1.5B) ✅
+- Sequential: 232ms (Qwen 1.5B) ✅
+- Concurrent (5): 0.217s (facebook/opt-125m) ✅
+- Concurrent (50): 2.115s (23.6 req/s throughput - facebook/opt-125m) ✅
+- Streaming: 0.617s (Qwen 1.5B) ✅
+
+**Benchmarks:** See docs/PERFORMANCE.md for comparisons and detailed methodology
 
 **Endpoints:**
 - ✅ /api/generate (streaming + non-streaming)
@@ -111,14 +113,14 @@ _Last Updated: 2025-10-29_
 - Added --enable-chunked-prefill for concurrent batching
 - Added --enable-prefix-caching for KV cache reuse
 - Removed hardcoded --max-model-len (let vLLM auto-detect)
-- **Impact: 34.91x faster than before, 29.95x faster than Ollama!**
+- **Impact: 34.91x faster than initial configuration!**
 
 ## What Didn't Work
 
-**~~Concurrent requests slower than Ollama~~ (FIXED ✅):**
+**~~Slow concurrent requests~~ (FIXED ✅):**
 - Root cause: Using minimal vLLM configuration (only 2 params)
 - Missing critical optimization flags
-- Fix: Added optimization flags, tested, verified 29.95x faster than Ollama!
+- Fix: Added optimization flags, tested, verified 34.91x improvement!
 
 **macOS performance:**
 - vLLM CPU-only, no Metal support planned
@@ -173,12 +175,12 @@ _Last Updated: 2025-10-29_
   - GPU memory requirements per model
   - FAQ and troubleshooting
 
-**Competitive Analysis:**
-- Positioning: "Ollama's DX with vLLM's performance"
-- Moat: 29.95x faster concurrent (PagedAttention), production focus
-- Real-world impact: 6 GPU cost savings (chatbots), 24x speedup (content gen)
+**Market Position:**
+- Positioning: High-performance, Ollama-compatible server for Linux production
+- Differentiators: vLLM's PagedAttention, production monitoring, Linux optimization
+- Real-world impact: Efficient GPU utilization, high concurrent throughput
 - Target: Linux production deployments, high-throughput APIs, observability
-- NOT competing: Cross-platform, GUI, beginner ease
+- Complementary to Ollama: Desktop/macOS users → Ollama, Linux production → vllama
 
 **0.0.7 (Production Infrastructure) - CREATED BUT UNTESTED:**
 
