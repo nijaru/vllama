@@ -5,15 +5,18 @@ _Last Updated: 2025-10-29_
 ## Completed So Far ✅
 
 - [x] vLLM optimization (high-performance concurrent inference)
-- [x] All core API endpoints (Ollama-compatible: /api/generate, /api/chat, /api/ps, /api/show, /api/version)
-- [x] Comprehensive testing (19 tests: 8 integration + 3 performance + 8 unit)
+- [x] Dual API support:
+  - [x] Ollama-compatible API (full): /api/generate, /api/chat, /api/ps, /api/show, /api/version, /api/pull, /api/tags
+  - [x] OpenAI-compatible API (full): /v1/models, /v1/completions, /v1/chat/completions
+- [x] Comprehensive testing (25 tests: 11 integration + 14 unit)
 - [x] Documentation (TESTING.md, REALISTIC_NEXT_STEPS.md, PERFORMANCE.md)
 - [x] Model validation (Qwen 2.5: 0.5B, 1.5B, 7B; Mistral 7B v0.3)
 - [x] docs/MODELS.md with compatibility matrix
-- [x] README updated with model references
+- [x] README updated with dual API examples
 - [x] Modern CLI UX (clean symbols, progress indicators, no emojis)
+- [x] Respectful positioning (complementary to Ollama)
 
-**Current version:** 0.0.5
+**Current version:** 0.0.6 (ready to tag)
 
 ---
 
@@ -147,11 +150,16 @@ the importance of actual testing over assumptions.
 - [x] ai/STATUS.md organized by API type
 - [x] Startup message shows both API sets
 
-### Pending
-- [ ] Integration tests for new endpoints (/v1/models, /v1/completions)
-- [ ] Performance testing with OpenAI clients
+### Testing ✅
+- [x] Integration tests for new endpoints
+  - [x] GET /v1/models - Verify model listing and format
+  - [x] POST /v1/completions (non-streaming) - Verify response format
+  - [x] POST /v1/completions (streaming) - Verify SSE format
+- [ ] Performance testing with OpenAI clients (future)
 
-**Status:** Implementation complete, tests pending. Ready for tag once tests added.
+**Status:** Implementation and tests complete. Ready for v0.0.6 tag.
+
+**Test count:** 25 tests total (14 unit + 11 integration)
 
 ---
 
@@ -230,26 +238,6 @@ the importance of actual testing over assumptions.
 
 ## Next Steps - Immediate Priorities
 
-### 0.0.6 - Integration Tests for OpenAI API (CURRENT)
-
-**Goal:** Add integration tests for the new OpenAI endpoints
-
-**Tasks:**
-- [ ] Add test for GET /v1/models
-  - Verify response format
-  - Check model list matches vLLM
-- [ ] Add test for POST /v1/completions (non-streaming)
-  - Verify response format
-  - Check completion quality
-- [ ] Add test for POST /v1/completions (streaming)
-  - Verify SSE format
-  - Check stream chunks
-
-**Effort:** 1-2 hours
-
-**Tag:** v0.0.6 when complete
-
----
 
 ### 0.0.7 - Deployment Validation (NEXT)
 

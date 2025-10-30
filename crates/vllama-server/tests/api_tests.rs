@@ -340,3 +340,132 @@ async fn test_openai_chat_completions() {
     assert!(message.get("role").is_some());
     assert!(message.get("content").is_some());
 }
+
+#[tokio::test]
+#[ignore]
+async fn test_openai_models_endpoint() {
+    wait_for_server().await.expect("Server must be running");
+
+    let client = get_client();
+    let response = client
+        .get(&format!("{}/v1/models", BASE_URL))
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert!(response.status().is_success());
+
+    let json: serde_json::Value = response.json().await.expect("Failed to parse JSON");
+    assert_eq!(json["object"], "list");
+    assert!(json.get("data").is_some());
+    assert!(json["data"].is_array());
+
+    // If vLLM is running with models, verify structure
+    if let Some(models) = json["data"].as_array() {
+        if models.len() > 0 {
+            let model = &models[0];
+            assert!(model.get("id").is_some());
+            assert_eq!(model["object"], "model");
+            assert!(model.get("created").is_some());
+            assert_eq!(model["owned_by"], "vllama");
+        }
+    }
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_openai_completions_non_streaming() {
+    wait_for_server().await.expect("Server must be running");
+
+    let client = get_client();
+    let response = client
+        .post(&format!("{}/v1/completions", BASE_URL))
+        .json(&json!({
+            "model": "facebook/opt-125m",
+            "prompt": "Once upon a time",
+            "max_tokens": 10,
+            "temperature": 0.7,
+            "stream": false
+        }))
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert!(response.status().is_success());
+
+    let json: serde_json::Value = response.json().await.expect("Failed to parse JSON");
+    assert!(json.get("id").is_some());
+    assert_eq!(json["object"], "text_completion");
+    assert!(json.get("created").is_some());
+    assert!(json.get("model").is_some());
+    assert!(json.get("choices").is_some());
+
+    let choices = json["choices"].as_array().expect("choices should be array");
+    assert!(choices.len() > 0);
+
+    let choice = &choices[0];
+    assert!(choice.get("text").is_some());
+    assert_eq!(choice["index"], 0);
+    assert_eq!(choice["finish_reason"], "stop");
+
+    // Verify text is not empty
+    let text = choice["text"].as_str().expect("text should be string");
+    assert!(!text.is_empty(), "Generated text should not be empty");
+}
+
+#[tokio::test]
+#[ignore]
+async fn test_openai_completions_streaming() {
+    wait_for_server().await.expect("Server must be running");
+
+    let client = get_client();
+    let response = client
+        .post(&format!("{}/v1/completions", BASE_URL))
+        .json(&json!({
+            "model": "facebook/opt-125m",
+            "prompt": "The weather today",
+            "max_tokens": 5,
+            "stream": true
+        }))
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    assert!(response.status().is_success());
+
+    // Verify it's a streaming response (SSE)
+    let content_type = response.headers().get("content-type");
+    assert!(content_type.is_some());
+    let content_type_str = content_type.unwrap().to_str().unwrap();
+    assert!(content_type_str.contains("text/event-stream"),
+        "Expected SSE content type, got: {}", content_type_str);
+
+    // Read the stream
+    let body = response.text().await.expect("Failed to read response body");
+
+    // Verify we got SSE formatted data
+    assert!(body.contains("data: "), "Response should contain SSE data fields");
+
+    // Verify the chunks contain valid JSON
+    let chunks: Vec<&str> = body.split("data: ")
+        .filter(|s| !s.trim().is_empty())
+        .collect();
+
+    assert!(chunks.len() > 0, "Should receive at least one chunk");
+
+    // Parse first chunk to verify structure
+    let first_chunk = chunks[0].trim();
+    let chunk_json: serde_json::Value = serde_json::from_str(first_chunk)
+        .expect("First chunk should be valid JSON");
+
+    assert!(chunk_json.get("id").is_some());
+    assert_eq!(chunk_json["object"], "text_completion");
+    assert!(chunk_json.get("choices").is_some());
+
+    let choices = chunk_json["choices"].as_array().expect("choices should be array");
+    assert!(choices.len() > 0);
+
+    let choice = &choices[0];
+    assert!(choice.get("text").is_some());
+    assert_eq!(choice["index"], 0);
+}
