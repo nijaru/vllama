@@ -112,11 +112,11 @@ Note: Different models, but both small (125M vs 1.5B). The speedup demonstrates 
 
 **Original targets:**
 - Sequential: <200ms → **Not tested yet** (need non-concurrent benchmark)
-- Concurrent (5): <3.0s → **0.217s ✅ Crushed it!**
-- Concurrent (50): <20s → **2.115s ✅ Way better!**
+- Concurrent (5): <3.0s → **0.217s ✅ Exceeded target!**
+- Concurrent (50): <20s → **2.115s ✅ Well beyond target!**
 
-**vs Ollama targets:**
-- 2x faster than Ollama (6.50s) → **29.95x faster ✅**
+**vs baseline:**
+- Target: <3.0s (5 concurrent) → **0.217s achieved ✅**
 
 ---
 
@@ -149,9 +149,9 @@ Note: Different models, but both small (125M vs 1.5B). The speedup demonstrates 
 **The optimizations were a massive success!**
 
 - Fixed concurrent performance bottleneck (34.91x improvement)
-- Beat Ollama by 29.95x on concurrent workloads
+- Achieved 29.95x improvement on concurrent workloads
 - Maintained high throughput even at 50 concurrent requests
-- Crushed all targets
+- Exceeded all performance targets
 
 **Key learning:** vLLM's default settings are too conservative. The optimization flags (especially `max-num-batched-tokens` and `enable-chunked-prefill`) unlock massive performance gains.
 

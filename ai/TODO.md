@@ -4,10 +4,10 @@ _Last Updated: 2025-10-29_
 
 ## Completed So Far ✅
 
-- [x] vLLM optimization (29.95x faster than Ollama on concurrent)
-- [x] All core Ollama endpoints (/api/generate, /api/chat, /api/ps, /api/show, /api/version)
+- [x] vLLM optimization (high-performance concurrent inference)
+- [x] All core API endpoints (Ollama-compatible: /api/generate, /api/chat, /api/ps, /api/show, /api/version)
 - [x] Comprehensive testing (19 tests: 8 integration + 3 performance + 8 unit)
-- [x] Documentation (TESTING.md, COMPETITIVE_STRATEGY.md, REALISTIC_NEXT_STEPS.md)
+- [x] Documentation (TESTING.md, REALISTIC_NEXT_STEPS.md, PERFORMANCE.md)
 - [x] Model validation (Qwen 2.5: 0.5B, 1.5B, 7B; Mistral 7B v0.3)
 - [x] docs/MODELS.md with compatibility matrix
 - [x] README updated with model references

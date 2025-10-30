@@ -147,17 +147,17 @@ _Architectural decisions and their rationale_
 **Rationale:**
 
 **Why Linux-first:**
-- vLLM 29.95x faster than Ollama on concurrent (sustainable advantage)
-- Architectural superiority on NVIDIA GPUs (won't be matched)
+- vLLM optimized for concurrent workloads on NVIDIA GPUs
+- Strong architectural fit for NVIDIA GPU infrastructure
 - Target market: production deployments (all Linux + NVIDIA)
 - Haven't even validated popular models yet (Llama 3.x, Qwen, Mistral)
 
 **Why defer macOS:**
 - Would use llama.cpp (same as Ollama)
-- llama.cpp is performance ceiling for both us and Ollama
-- Best case: 10-20% faster single request, 2-5x concurrent (modest)
+- llama.cpp is performance ceiling for both
+- Best case: Modest improvements (10-20% single request, 2-5x concurrent)
 - Ollama already works great on macOS
-- Opportunity cost too high (time not on Linux dominance)
+- Opportunity cost too high (time better spent on Linux focus)
 - 2 engines = 2x complexity (vLLM + llama.cpp, HF + GGUF)
 
 **Positioning:**
